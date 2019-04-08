@@ -35,6 +35,7 @@ public class Graphics {
         Typeface typefaceBold = Typeface.create(typeface, Typeface.BOLD);
         paint.setTypeface(typefaceBold); */
         paint.setTypeface(Typeface.DEFAULT_BOLD);
+        paint.setFlags(Paint.ANTI_ALIAS_FLAG);
     }
 
     public Bitmap getFrameBuffer() {
