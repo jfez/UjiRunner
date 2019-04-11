@@ -19,6 +19,7 @@
 
         <activity android:name=".testFramework.TestFramework" />
         <activity android:name=".testParallax.TestParallax" />
+        <activity android:name=".testCharacter.TestCharacter" />
     </application>
 
 </manifest>

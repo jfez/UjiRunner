@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import com.example.jorge.ujirunnerapp.testCharacter.TestCharacter;
 import com.example.jorge.ujirunnerapp.testFramework.TestFramework;
 import com.example.jorge.ujirunnerapp.testParallax.TestParallax;
 
@@ -13,6 +14,7 @@ public class MainActivity extends AppCompatActivity {
 
     public Button framework;
     public Button parallax;
+    public Button runner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
 
         framework = findViewById(R.id.frameworkBut);
         parallax = findViewById(R.id.parallaxBut);
+        runner = findViewById(R.id.characterBut);
 
 
         framework.setOnClickListener(new View.OnClickListener() {
@@ -29,10 +32,18 @@ public class MainActivity extends AppCompatActivity {
                 testFramework(v);
             }
         });
+
         parallax.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 testParallax(v);
+            }
+        });
+
+        runner.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                testCharacter(v);
             }
         });
 
@@ -48,6 +59,11 @@ public class MainActivity extends AppCompatActivity {
 
     public void testParallax(View view){
         Intent intent = new Intent(this, TestParallax.class);
+        startActivity(intent);
+    }
+
+    public void testCharacter(View view){
+        Intent intent = new Intent(this, TestCharacter.class);
         startActivity(intent);
     }
 
