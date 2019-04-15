@@ -3,6 +3,7 @@ package com.example.jorge.ujirunnerapp.model;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Sprite {
@@ -15,7 +16,7 @@ public class Sprite {
     private int sizeX;
     private int sizeY;
 
-    private List<Animation> animationLists;
+    private List<Animation> animationList;
     private Rect rect;
     private boolean isAnimated;
 
@@ -29,7 +30,7 @@ public class Sprite {
         this.sizeX = sizeX;
         this.sizeY = sizeY;
 
-        this.animationLists = null;
+        this.animationList = null;
         this.rect = null;
         this.isAnimated = false;
     }
@@ -111,5 +112,30 @@ public class Sprite {
         x = x + speedX*time;
         y = y + speedY*time;
 
+    }
+
+    public void addAnimation (Animation animation) {
+        if (animationList == null){
+            animationList = new ArrayList<Animation>();
+        }
+        if (!isAnimated){
+            isAnimated = true;
+        }
+        animationList.add(animation);
+
+    }
+
+    public Animation getAnimation(){
+        return animationList.get(0);
+
+    }
+
+    public Animation getAnimation(int id){
+        return animationList.get(id);
+
+    }
+
+    public boolean isAnimated() {
+        return isAnimated;
     }
 }

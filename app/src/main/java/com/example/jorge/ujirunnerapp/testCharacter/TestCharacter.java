@@ -11,9 +11,9 @@ public class TestCharacter extends GameActivity {
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 
-        TestCharacterController testParallaxController = new TestCharacterController(this, displayMetrics.widthPixels, displayMetrics.heightPixels);
+        TestCharacterController testCharacterController = new TestCharacterController(this, displayMetrics.widthPixels, displayMetrics.heightPixels);
 
-        return testParallaxController;
+        return testCharacterController;
 
     }
 }
