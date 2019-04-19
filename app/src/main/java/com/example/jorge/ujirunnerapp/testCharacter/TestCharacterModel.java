@@ -1,5 +1,7 @@
 package com.example.jorge.ujirunnerapp.testCharacter;
 
+import android.graphics.Rect;
+
 import com.example.jorge.ujirunnerapp.Assets;
 import com.example.jorge.ujirunnerapp.model.Animation;
 import com.example.jorge.ujirunnerapp.model.Sprite;
@@ -19,8 +21,8 @@ public class TestCharacterModel {
     public static final int END_X = (STAGE_WIDTH * 5) / 8;
 
     private static final float UNIT_TIME = 1f / 30;
-    private static final int RUNNER_SPEED = 7;
-    private static final int JUMP_OFFSET = 20;
+    private static final int RUNNER_SPEED = 70;
+    private static final int JUMP_OFFSET = 10;
 
     private float tickTime;
 
@@ -37,6 +39,7 @@ public class TestCharacterModel {
 
     private Sprite runner;
     private RunnerState runnerState;
+    private Rect currentFrame;
 
     private int[] runnerWidths;
     private int[] runnerHeights;
@@ -62,7 +65,7 @@ public class TestCharacterModel {
         //squareY = baseline - this.playerWidth;
 
         speed = 60;
-        time = 3;
+        //time = 3;
 
 
         // Set speeds and initial pos X for parallax layers
@@ -103,13 +106,13 @@ public class TestCharacterModel {
 
 
         runner.addAnimation(new Animation(1, Assets.CHARACTER_RUN_NUMBER_OF_FRAMES,runnerWidths[RunnerState.RUNNING.ordinal()],
-                runnerHeights[RunnerState.RUNNING.ordinal()], runnerWidths[RunnerState.RUNNING.ordinal()] * Assets.CHARACTER_RUN_NUMBER_OF_FRAMES, 30));
+                runnerHeights[RunnerState.RUNNING.ordinal()], runnerWidths[RunnerState.RUNNING.ordinal()] * Assets.CHARACTER_RUN_NUMBER_OF_FRAMES, 10));
 
         runner.addAnimation(new Animation(1, Assets.CHARACTER_CROUCH_NUMBER_OF_FRAMES,runnerWidths[RunnerState.CROUCHING.ordinal()],
-                runnerHeights[RunnerState.CROUCHING.ordinal()], runnerWidths[RunnerState.CROUCHING.ordinal()] * Assets.CHARACTER_CROUCH_NUMBER_OF_FRAMES, 30));
+                runnerHeights[RunnerState.CROUCHING.ordinal()], runnerWidths[RunnerState.CROUCHING.ordinal()] * Assets.CHARACTER_CROUCH_NUMBER_OF_FRAMES, 10));
 
         runner.addAnimation(new Animation(1, Assets.CHARACTER_JUMP_NUMBER_OF_FRAMES,runnerWidths[RunnerState.JUMPING.ordinal()],
-                runnerHeights[RunnerState.JUMPING.ordinal()], runnerWidths[RunnerState.JUMPING.ordinal()] * Assets.CHARACTER_JUMP_NUMBER_OF_FRAMES, 30));
+                runnerHeights[RunnerState.JUMPING.ordinal()], runnerWidths[RunnerState.JUMPING.ordinal()] * Assets.CHARACTER_JUMP_NUMBER_OF_FRAMES, 10));
 
 
 
@@ -118,9 +121,57 @@ public class TestCharacterModel {
     public void update(float deltaTime) {
         tickTime += deltaTime;
         while (tickTime >= UNIT_TIME) {
+            if(runnerState == RunnerState.JUMPING){
+                if (runner.getAnimation(RunnerState.JUMPING.ordinal()).hasRun()){
+                    runnerState = RunnerState.RUNNING;
+                    runner.getAnimation(RunnerState.RUNNING.ordinal()).resetAnimation();
+                    runner.setBitmapToRender(Assets.characterRunning);
+                    runner.setSizeX(runnerWidths[RunnerState.RUNNING.ordinal()]);
+                    runner.setSizeY(runnerHeights[RunnerState.RUNNING.ordinal()]);
+                    runner.setY(baseline - runnerHeights[RunnerState.RUNNING.ordinal()] );
+                }
+            }
+
             tickTime -= UNIT_TIME;
             updateParallaxBg();
+            updateRunner();
         }
+    }
+
+    public Sprite getRunner() {
+        return runner;
+    }
+
+    private void updateRunner() {
+        runner.Move(UNIT_TIME);
+
+        if (runnerState == RunnerState.RUNNING){
+            currentFrame = runner.getAnimation(RunnerState.RUNNING.ordinal()).getCurrentFrame(UNIT_TIME);
+        }
+
+        else if (runnerState == RunnerState.JUMPING){
+            currentFrame = runner.getAnimation(RunnerState.JUMPING.ordinal()).getCurrentFrame(UNIT_TIME);
+        }
+
+        else if (runnerState == RunnerState.CROUCHING){
+            currentFrame = runner.getAnimation(RunnerState.CROUCHING.ordinal()).getCurrentFrame(UNIT_TIME);
+        }
+
+        runner.setRect(currentFrame);
+
+        if (runner.getX() <= START_X && isRunningBackwards){
+            runner.setSpeedX(0);
+            //runner.Move(time);
+            isRunningBackwards = false;
+        }
+
+        if (runner.getX() >= END_X && isRunningForward){
+            runner.setSpeedX(0);
+            //runner.Move(time);
+            isRunningForward = false;
+        }
+
+
     }
 
     private void updateParallaxBg() {
@@ -142,7 +193,7 @@ public class TestCharacterModel {
         if (runnerState == RunnerState.RUNNING){
             if (touchX > threshold + runnerWidths[RunnerState.RUNNING.ordinal()] && isRunningBackwards){
                 runner.setSpeedX(0);
-                runner.Move(time);
+                //runner.Move(time);
                 isRunningBackwards = false;
             }
 
@@ -152,7 +203,7 @@ public class TestCharacterModel {
 
             else if (touchX > threshold + runnerWidths[RunnerState.RUNNING.ordinal()] && !isRunningForward && !isRunningBackwards){
                 runner.setSpeedX(RUNNER_SPEED);
-                runner.Move(time);
+                //runner.Move(time);
                 isRunningForward = true;
 
             }
@@ -163,29 +214,21 @@ public class TestCharacterModel {
 
             else if (touchX < threshold && isRunningForward){
                 runner.setSpeedX(0);
-                runner.Move(time);
+                //runner.Move(time);
                 isRunningForward = false;
 
             }
 
             else if (touchX < threshold && !isRunningForward && !isRunningBackwards){
                 runner.setSpeedX(-RUNNER_SPEED);
-                runner.Move(time);
+                //runner.Move(time);
                 isRunningBackwards = true;
 
             }
 
-            if (runner.getX() <= START_X){
-                runner.setSpeedX(0);
-                runner.Move(time);
-                isRunningBackwards = false;
-            }
 
-            else if (runner.getX() >= END_X){
-                runner.setSpeedX(0);
-                runner.Move(time);
-                isRunningForward = false;
-            }
+
+
 
             if (touchY < topline){
                 runnerState = RunnerState.JUMPING;
@@ -195,7 +238,7 @@ public class TestCharacterModel {
                 runner.setSizeY(runnerHeights[RunnerState.JUMPING.ordinal()]);
                 runner.setY(topline - runnerHeights[RunnerState.JUMPING.ordinal()] - JUMP_OFFSET );       //Corriendo pasamos a salto
                 runner.setSpeedX(0);
-                runner.Move(time);
+                //runner.Move(time);
                 isRunningForward = false;
                 isRunningBackwards = false;
             }
@@ -208,7 +251,7 @@ public class TestCharacterModel {
                 runner.setSizeY(runnerHeights[RunnerState.CROUCHING.ordinal()]);
                 runner.setY(baseline);       //Corriendo pasamos a agachar
                 runner.setSpeedX(0);
-                runner.Move(time);
+                //runner.Move(time);
                 isRunningForward = false;
                 isRunningBackwards = false;
             }

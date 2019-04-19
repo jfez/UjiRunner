@@ -7,12 +7,12 @@ import android.graphics.BitmapFactory;
 
 public class Assets {
 
-    public static final int CHARACTER_RUN_FRAME_WIDTH = 120;
-    public static final int CHARACTER_RUN_FRAME_HEIGHT = 150;
-    public static final int CHARACTER_JUMP_FRAME_WIDTH = 72;
-    public static final int CHARACTER_JUMP_FRAME_HEIGHT = 150;
-    public static final int CHARACTER_CROUCH_FRAME_WIDTH = 70;
-    public static final int CHARACTER_CROUCH_FRAME_HEIGHT = 105;
+    public static final int CHARACTER_RUN_FRAME_WIDTH = 100;
+    public static final int CHARACTER_RUN_FRAME_HEIGHT = 125;
+    public static final int CHARACTER_JUMP_FRAME_WIDTH = 100;    //72
+    public static final int CHARACTER_JUMP_FRAME_HEIGHT = 125;
+    public static final int CHARACTER_CROUCH_FRAME_WIDTH = 100;
+    public static final int CHARACTER_CROUCH_FRAME_HEIGHT = 100;    //105
     public static final int CHARACTER_RUN_NUMBER_OF_FRAMES = 8;
     public static final int CHARACTER_CROUCH_NUMBER_OF_FRAMES = 8;
     public static final int CHARACTER_JUMP_NUMBER_OF_FRAMES = 4;

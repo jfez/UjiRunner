@@ -1,6 +1,8 @@
 package com.example.jorge.ujirunnerapp.testCharacter;
 
 import android.graphics.Bitmap;
+import android.graphics.Rect;
+import android.graphics.RectF;
 
 import com.example.jorge.ujirunnerapp.Assets;
 import com.example.jorge.ujirunnerapp.framework.Graphics;
@@ -18,9 +20,9 @@ import static com.example.jorge.ujirunnerapp.testCharacter.TestCharacterModel.PA
 
 public class TestCharacterController implements IGameController {
 
-    private static final int BASELINE = 275;
-    private static final int TOPLINE = BASELINE - 55;
-    private static final int THRESHOLD = 50;
+    private static final int BASELINE = 255;
+    private static final int TOPLINE = BASELINE - 100;
+    private static final int THRESHOLD = 150;
     //private static final int SQUARE_SIZE = 40;
     private static final float PLAYER_WIDTH_PERCENT = 0.15f;
 
@@ -33,6 +35,10 @@ public class TestCharacterController implements IGameController {
 
     private Sprite[] bgParallax;
     private Sprite[] shiftedBGParallax;
+
+    private Sprite runner;
+    private RectF whereToDraw;
+    private Rect frameToDraw;
 
 
 
@@ -71,11 +77,21 @@ public class TestCharacterController implements IGameController {
             graphics.drawBitmap(shiftedBGParallax[i].getBitmapToRender(), shiftedBGParallax[i].getX(), shiftedBGParallax[i].getY(), false);
         }
 
-        graphics.drawLine(0,BASELINE, STAGE_WIDTH, BASELINE, 0xFF0F00FF, 7);
-        graphics.drawLine(0,TOPLINE, STAGE_WIDTH, TOPLINE, 0xFFFF0000, 7);
+        //No se pinta ninguna línea
 
-        //Línea comentada para que no salga en rojo y evitar el TOC
-        //graphics.drawRect(model.getSquareX(),model.getSquareY(),SQUARE_SIZE, SQUARE_SIZE, 0xFF0FB40F);
+        //graphics.drawLine(0,BASELINE, STAGE_WIDTH, BASELINE, 0xFF0F00FF, 7);
+        //graphics.drawLine(0,TOPLINE, STAGE_WIDTH, TOPLINE, 0xFFFF0000, 7);
+
+
+        runner = model.getRunner();
+
+        //graphics.drawRect(runner.getX(),runner.getY(),runner.getSizeX(), runner.getSizeY(), 0xFF0FB40F);
+
+        frameToDraw = runner.getRect();
+
+        whereToDraw = new RectF(runner.getX(), runner.getY(), runner.getX() + runner.getSizeX(), runner.getY() + runner.getSizeY());
+
+        graphics.drawAnimatedBitmap(runner.getBitmapToRender(), frameToDraw, whereToDraw, false);
 
         return graphics.getFrameBuffer();
     }
