@@ -138,4 +138,16 @@ public class Sprite {
     public boolean isAnimated() {
         return isAnimated;
     }
+
+    public boolean overlapBoundingBoxes (Sprite sprite){
+        if(     this.getX() <= sprite.getX() + sprite.getSizeX() &&
+                this.getX() + this.getSizeX() >= sprite.getX() &&
+                this.getY() <= sprite.getY() + sprite.getSizeY() &&
+                this.getY() + this.getSizeY() >= sprite.getY()){
+
+                    return true;
+        }
+
+        return false;
+    }
 }
