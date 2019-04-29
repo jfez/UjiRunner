@@ -17,17 +17,71 @@ public class Assets {
     public static final int CHARACTER_CROUCH_NUMBER_OF_FRAMES = 8;
     public static final int CHARACTER_JUMP_NUMBER_OF_FRAMES = 4;
 
+    public static final int BOB_NUMBER_OF_FRAMES = 9;
+    public static final int CHOMP_NUMBER_OF_FRAMES = 2;
+    public static final int GOOMBA_NUMBER_OF_FRAMES = 10;
+    public static final int PLANTA_NUMBER_OF_FRAMES = 2;
+    public static final int GOOMBA_VOLADOR_NUMBER_OF_FRAMES = 2;
+    public static final int LAKITU_NUMBER_OF_FRAMES = 4;
+    public static final int DEMISE_GROUND_NUMBER_OF_FRAMES = 6;
+    public static final int DEMISE_FLYING_NUMBER_OF_FRAMES = 5;
+
+    public static final int BOB_FRAME_HEIGHT = 50;
+    public static final int BOB_FRAME_WIDTH = 100;
+    public static final int CHOMP_FRAME_HEIGHT = 50;
+    public static final int CHOMP_FRAME_WIDTH = 100;
+    public static final int GOOMBA_FRAME_HEIGHT = 50;
+    public static final int GOOMBA_FRAME_WIDTH = 50;
+    public static final int GOOMBA_VOLADOR_FRAME_HEIGHT = 50;
+    public static final int GOOMBA_VOLADOR_FRAME_WIDTH = 50;
+    public static final int LAKITU_FRAME_HEIGHT = 50;
+    public static final int LAKITU_FRAME_WIDTH = 50;
+    public static final int PLANTA_FRAME_HEIGHT = 50;
+    public static final int PLANTA_FRAME_WIDTH = 50;
+    public static final int DEMISE_GROUND_FRAME_HEIGHT = 50;
+    public static final int DEMISE_GROUND_FRAME_WIDTH = 50;
+    public static final int DEMISE_FLYING_FRAME_HEIGHT = 50;
+    public static final int DEMISE_FLYING_FRAME_WIDTH = 50;
+
+
+    public static final float HEIGHT_RATIO_GROUND_OBSTACLE = 0.6f;
+    public static final float HEIGHT_RATIO_FLYING_OBSTACLE = 0.85f;
+    public static final float HEIGHT_RATIO_EXPLOSION = 0.85f;
+
+
     public static Bitmap[] bgLayers;
 
     public static Bitmap characterRunning;
     public static Bitmap characterCrouching;
     public static Bitmap characterJumping;
 
+    public static Bitmap bobObstacle;
+    public static Bitmap chompObstacle;
+    public static Bitmap goombaObstacle;
+    public static Bitmap goombaVoladorObstacle;
+    public static Bitmap lakituObstacle;
+    public static Bitmap plantaObstacle;
+    public static Bitmap demiseGroundObstacle;
+    public static Bitmap demiseFlyingObstacle;
+
     public static int playerHeight;
     public static int runnerJumpsWidth;
     public static int runnerJumpsHeight;
     public static int runnerCrouchesWidth;
     public static int runnerCrouchesHeight;
+
+    public static int heightForGroundObstacles;
+    public static int heightForFlyingObstacles;
+    //no hace falta altura de los demises porque son el mismo que el de los obstáculos??
+
+    public static int bobObstacleWidth;
+    public static int chompObstacleWidth;
+    public static int goombaObstacleWidth;
+    public static int goombaVoladorObstacleWidth;
+    public static int lakituObstacleWidth;
+    public static int plantaObstacleWidth;
+    public static int demiseGroundObstacleWidth;
+    public static int demiseFlyingObstacleWidth;
 
 
 
@@ -51,6 +105,40 @@ public class Assets {
         if (characterRunning != null){
             characterRunning.recycle();
         }
+
+        if (bobObstacle != null){
+            bobObstacle.recycle();
+        }
+
+        if (chompObstacle != null){
+            chompObstacle.recycle();
+        }
+
+        if (goombaObstacle != null){
+            goombaObstacle.recycle();
+        }
+
+        if (plantaObstacle != null){
+            plantaObstacle.recycle();
+        }
+
+        if (goombaVoladorObstacle != null){
+            goombaVoladorObstacle.recycle();
+        }
+
+        if (lakituObstacle != null){
+            lakituObstacle.recycle();
+        }
+
+        if (demiseGroundObstacle != null){
+            demiseGroundObstacle.recycle();
+        }
+
+        if (demiseFlyingObstacle != null){
+            demiseFlyingObstacle.recycle();
+        }
+
+
 
         int[] bgLayersResources = {
                 R.drawable.ground,
@@ -91,6 +179,60 @@ public class Assets {
         characterCrouching = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(
                 resources, R.drawable.crouchsp), runnerCrouchesWidth *
                 CHARACTER_CROUCH_NUMBER_OF_FRAMES, runnerCrouchesHeight, true);
+
+
+
+
+        // All the ground obstacles have the same height
+        heightForGroundObstacles = (int) (playerHeight * HEIGHT_RATIO_GROUND_OBSTACLE);
+        heightForFlyingObstacles = (int) (playerHeight * HEIGHT_RATIO_FLYING_OBSTACLE);
+
+        bobObstacleWidth = (heightForGroundObstacles * BOB_FRAME_WIDTH) /
+                BOB_FRAME_HEIGHT;
+        bobObstacle = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(resources,
+                R.drawable.bobrun), bobObstacleWidth * BOB_NUMBER_OF_FRAMES, heightForGroundObstacles, true);
+
+        chompObstacleWidth = (heightForGroundObstacles * CHOMP_FRAME_WIDTH) /
+                CHOMP_FRAME_HEIGHT;
+        chompObstacle = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(
+                resources, R.drawable.chomprun), chompObstacleWidth * CHOMP_NUMBER_OF_FRAMES,
+                heightForGroundObstacles, true);
+
+        goombaObstacleWidth = (heightForGroundObstacles * GOOMBA_FRAME_WIDTH) /
+                GOOMBA_FRAME_HEIGHT;
+        goombaObstacle = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(
+                resources, R.drawable.goombarun), goombaObstacleWidth * GOOMBA_NUMBER_OF_FRAMES,
+                heightForGroundObstacles, true);
+
+        goombaVoladorObstacleWidth = (heightForFlyingObstacles * GOOMBA_VOLADOR_FRAME_WIDTH) /
+                GOOMBA_VOLADOR_FRAME_HEIGHT;
+        goombaVoladorObstacle = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(
+                resources, R.drawable.goombavolador), goombaVoladorObstacleWidth * GOOMBA_VOLADOR_NUMBER_OF_FRAMES,
+                heightForFlyingObstacles, true);
+
+        lakituObstacleWidth = (heightForFlyingObstacles * LAKITU_FRAME_WIDTH) /
+                LAKITU_FRAME_HEIGHT;
+        lakituObstacle = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(
+                resources, R.drawable.lakiturun), lakituObstacleWidth * LAKITU_NUMBER_OF_FRAMES,
+                heightForFlyingObstacles, true);
+
+        plantaObstacleWidth = (heightForGroundObstacles * PLANTA_FRAME_WIDTH) /
+                PLANTA_FRAME_HEIGHT;
+        plantaObstacle = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(
+                resources, R.drawable.plantarun), plantaObstacleWidth * PLANTA_NUMBER_OF_FRAMES,
+                heightForGroundObstacles, true);
+
+        demiseGroundObstacleWidth = (heightForGroundObstacles * DEMISE_GROUND_FRAME_WIDTH) /
+                DEMISE_GROUND_FRAME_HEIGHT;
+        demiseGroundObstacle = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(
+                resources, R.drawable.demisegroundsp), demiseGroundObstacleWidth * DEMISE_GROUND_NUMBER_OF_FRAMES,
+                heightForGroundObstacles, true);
+
+        demiseFlyingObstacleWidth = (heightForFlyingObstacles * DEMISE_FLYING_FRAME_WIDTH) /
+                DEMISE_FLYING_FRAME_HEIGHT;
+        demiseFlyingObstacle = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(
+                resources, R.drawable.demiseflyingsp), demiseFlyingObstacleWidth * DEMISE_FLYING_NUMBER_OF_FRAMES,
+                heightForFlyingObstacles, true);
 
 
     }

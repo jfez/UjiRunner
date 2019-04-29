@@ -40,6 +40,10 @@ public class TestObstaclesController implements IGameController {
     private RectF whereToDraw;
     private Rect frameToDraw;
 
+    private List<Sprite> groundObstacles;
+    private List<Sprite> flyingObstacles;
+    private List<Sprite> demises;
+
 
 
 
@@ -84,8 +88,32 @@ public class TestObstaclesController implements IGameController {
 
 
         runner = model.getRunner();
+        groundObstacles = model.getGroundObstacles();
+        flyingObstacles = model.getFlyingObstacles();
+        demises = model.getDemises();
+
 
         //graphics.drawRect(runner.getX(),runner.getY(),runner.getSizeX(), runner.getSizeY(), 0xFF0FB40F);
+
+        for (Sprite sprite : groundObstacles)
+        {
+            frameToDraw = sprite.getRect();
+
+            whereToDraw = new RectF(sprite.getX(), sprite.getY(), sprite.getX() + sprite.getSizeX(), sprite.getY() + sprite.getSizeY());
+
+            graphics.drawAnimatedBitmap(sprite.getBitmapToRender(), frameToDraw, whereToDraw, false);
+
+        }
+
+        for (Sprite sprite : flyingObstacles)
+        {
+            frameToDraw = sprite.getRect();
+
+            whereToDraw = new RectF(sprite.getX(), sprite.getY(), sprite.getX() + sprite.getSizeX(), sprite.getY() + sprite.getSizeY());
+
+            graphics.drawAnimatedBitmap(sprite.getBitmapToRender(), frameToDraw, whereToDraw, false);
+
+        }
 
         frameToDraw = runner.getRect();
 
@@ -93,6 +121,21 @@ public class TestObstaclesController implements IGameController {
 
         graphics.drawAnimatedBitmap(runner.getBitmapToRender(), frameToDraw, whereToDraw, false);
 
+        for (Sprite sprite : demises)
+        {
+            frameToDraw = sprite.getRect();
+
+            whereToDraw = new RectF(sprite.getX(), sprite.getY(), sprite.getX() + sprite.getSizeX(), sprite.getY() + sprite.getSizeY());
+
+            graphics.drawAnimatedBitmap(sprite.getBitmapToRender(), frameToDraw, whereToDraw, false);
+
+        }
+
+
+
+
         return graphics.getFrameBuffer();
+
+
     }
 }
