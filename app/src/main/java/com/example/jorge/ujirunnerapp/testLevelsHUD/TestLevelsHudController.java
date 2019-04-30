@@ -1,4 +1,4 @@
-package com.example.jorge.ujirunnerapp.testObstacles;
+package com.example.jorge.ujirunnerapp.testLevelsHUD;
 
 import android.graphics.Bitmap;
 import android.graphics.Rect;
@@ -13,25 +13,31 @@ import com.example.jorge.ujirunnerapp.model.Sprite;
 import java.util.List;
 
 import static com.example.jorge.ujirunnerapp.framework.TouchHandler.TouchType.TOUCH_DOWN;
-import static com.example.jorge.ujirunnerapp.testObstacles.TestObstaclesModel.PARALLAX_LAYERS;
-import static com.example.jorge.ujirunnerapp.testObstacles.TestObstaclesModel.PARALLAX_WIDTH;
-import static com.example.jorge.ujirunnerapp.testObstacles.TestObstaclesModel.STAGE_HEIGHT;
-import static com.example.jorge.ujirunnerapp.testObstacles.TestObstaclesModel.STAGE_WIDTH;
+import static com.example.jorge.ujirunnerapp.testLevelsHUD.TestLevelsHudModel.PARALLAX_LAYERS;
+import static com.example.jorge.ujirunnerapp.testLevelsHUD.TestLevelsHudModel.PARALLAX_WIDTH;
+import static com.example.jorge.ujirunnerapp.testLevelsHUD.TestLevelsHudModel.STAGE_HEIGHT;
+import static com.example.jorge.ujirunnerapp.testLevelsHUD.TestLevelsHudModel.STAGE_WIDTH;
 
-public class TestObstaclesController implements IGameController {
+public class TestLevelsHudController implements IGameController {
 
     private static final int BASELINE = 255;
     private static final int TOPLINE = BASELINE - 100;
     private static final int THRESHOLD = 150;
     //private static final int SQUARE_SIZE = 40;
     private static final float PLAYER_WIDTH_PERCENT = 0.15f;
+    private static final int COIN_MARGIN_X = 30;
+    private static final int FONT_SIZE = 25;
+    private static final int MARGIN_PIPE_X = 13;
+    private static final int MARGIN_PIPE_Y = 13;
+    private static final int MARGIN_PIPE_SIZEX = 40;
+    private static final int MARGIN_PIPE_SIZEY = 4;
 
     private int playerWidth;
 
     private float scaleX;
     private float scaleY;
     Graphics graphics;
-    TestObstaclesModel model;
+    TestLevelsHudModel model;
 
     private Sprite[] bgParallax;
     private Sprite[] shiftedBGParallax;
@@ -44,16 +50,20 @@ public class TestObstaclesController implements IGameController {
     private List<Sprite> flyingObstacles;
     private List<Sprite> demises;
 
+    private Sprite coin;
+    private Sprite heart;
+    private Sprite lifeContainer;
 
 
 
-    public TestObstaclesController(TestObstacles testParallax, int screenWidth, int screenHeight) {
+
+    public TestLevelsHudController(TestLevelsHud testParallax, int screenWidth, int screenHeight) {
         graphics = new Graphics(testParallax, STAGE_WIDTH, STAGE_HEIGHT);
         scaleX = (float) STAGE_WIDTH / screenWidth;
         scaleY = (float) STAGE_HEIGHT / screenHeight;
         playerWidth =(int) (STAGE_WIDTH * PLAYER_WIDTH_PERCENT);
         Assets.createAssets(testParallax.getApplicationContext(), playerWidth, STAGE_HEIGHT, PARALLAX_WIDTH);
-        model = new TestObstaclesModel(playerWidth, BASELINE, TOPLINE, THRESHOLD);
+        model = new TestLevelsHudModel(playerWidth, BASELINE, TOPLINE, THRESHOLD);
     }
 
     @Override
@@ -91,6 +101,9 @@ public class TestObstaclesController implements IGameController {
         groundObstacles = model.getGroundObstacles();
         flyingObstacles = model.getFlyingObstacles();
         demises = model.getDemises();
+        coin = model.getCoin();
+        heart = model.getHeart();
+        lifeContainer = model.getLifeContainer();
 
 
         //graphics.drawRect(runner.getX(),runner.getY(),runner.getSizeX(), runner.getSizeY(), 0xFF0FB40F);
@@ -140,6 +153,14 @@ public class TestObstaclesController implements IGameController {
 
             }
         }
+
+        graphics.drawBitmap(heart.getBitmapToRender(), heart.getX(), heart.getY(), false);
+        graphics.drawBitmap(coin.getBitmapToRender(), coin.getX(), coin.getY(), false);
+        graphics.drawText(model.getCoinsCollected()+"", coin.getX() + COIN_MARGIN_X, coin.getY() + coin.getSizeY(), 0xFFffe65d, FONT_SIZE);
+        graphics.drawText(model.getMetresTravelled()+" METRES", lifeContainer.getX() + lifeContainer.getSizeX(), coin.getY() + coin.getSizeY(), 0xFFffe65d, FONT_SIZE-7);
+        graphics.drawRect(lifeContainer.getX()+MARGIN_PIPE_X, lifeContainer.getY()+MARGIN_PIPE_Y, lifeContainer.getSizeX() - MARGIN_PIPE_SIZEX, lifeContainer.getSizeY() - MARGIN_PIPE_SIZEY, 0xFF0FB40F);
+        graphics.drawBitmap(lifeContainer.getBitmapToRender(), lifeContainer.getX(), lifeContainer.getY(), false);
+
 
         return graphics.getFrameBuffer();
 

@@ -26,27 +26,39 @@ public class Assets {
     public static final int DEMISE_GROUND_NUMBER_OF_FRAMES = 6;
     public static final int DEMISE_FLYING_NUMBER_OF_FRAMES = 5;
 
-    public static final int BOB_FRAME_HEIGHT = 50;
-    public static final int BOB_FRAME_WIDTH = 100;
-    public static final int CHOMP_FRAME_HEIGHT = 50;
-    public static final int CHOMP_FRAME_WIDTH = 100;
-    public static final int GOOMBA_FRAME_HEIGHT = 50;
-    public static final int GOOMBA_FRAME_WIDTH = 50;
-    public static final int GOOMBA_VOLADOR_FRAME_HEIGHT = 50;
-    public static final int GOOMBA_VOLADOR_FRAME_WIDTH = 50;
-    public static final int LAKITU_FRAME_HEIGHT = 50;
-    public static final int LAKITU_FRAME_WIDTH = 50;
-    public static final int PLANTA_FRAME_HEIGHT = 50;
-    public static final int PLANTA_FRAME_WIDTH = 50;
-    public static final int DEMISE_GROUND_FRAME_HEIGHT = 50;
-    public static final int DEMISE_GROUND_FRAME_WIDTH = 50;
-    public static final int DEMISE_FLYING_FRAME_HEIGHT = 50;
-    public static final int DEMISE_FLYING_FRAME_WIDTH = 50;
+    public static final int COINS_NUMBER_OF_FRAMES = 6;
+
+    public static final int BOB_FRAME_HEIGHT = 30;
+    public static final int BOB_FRAME_WIDTH = 28;
+    public static final int CHOMP_FRAME_HEIGHT = 162;
+    public static final int CHOMP_FRAME_WIDTH = 163;
+    public static final int GOOMBA_FRAME_HEIGHT = 17;
+    public static final int GOOMBA_FRAME_WIDTH = 19;
+    public static final int GOOMBA_VOLADOR_FRAME_HEIGHT = 24;
+    public static final int GOOMBA_VOLADOR_FRAME_WIDTH = 27;
+    public static final int LAKITU_FRAME_HEIGHT = 93;
+    public static final int LAKITU_FRAME_WIDTH = 46;
+    public static final int PLANTA_FRAME_HEIGHT = 37;
+    public static final int PLANTA_FRAME_WIDTH = 36;
+    public static final int DEMISE_GROUND_FRAME_HEIGHT = 100;
+    public static final int DEMISE_GROUND_FRAME_WIDTH = 143;
+    public static final int DEMISE_FLYING_FRAME_HEIGHT = 86;
+    public static final int DEMISE_FLYING_FRAME_WIDTH = 85;
+    public static final int COIN_FRAME_HEIGHT = 512;
+    public static final int COIN_FRAME_WIDTH = 512;
+    public static final int COINS_FRAME_HEIGHT = 157;
+    public static final int COINS_FRAME_WIDTH = 112;
+    public static final int HEART_FRAME_HEIGHT = 41;
+    public static final int HEART_FRAME_WIDTH = 39;
+    public static final int LIFECONTAINER_FRAME_HEIGHT = 771;
+    public static final int LIFECONTAINER_FRAME_WIDTH = 440;
+    public static final int LIFECONTAINERWIDTH = 120;
+
 
 
     public static final float HEIGHT_RATIO_GROUND_OBSTACLE = 0.6f;
     public static final float HEIGHT_RATIO_FLYING_OBSTACLE = 0.85f;
-    public static final float HEIGHT_RATIO_EXPLOSION = 0.85f;
+    public static final float HEIGHT_RATIO_HUD = 0.2f;
 
 
     public static Bitmap[] bgLayers;
@@ -63,6 +75,11 @@ public class Assets {
     public static Bitmap plantaObstacle;
     public static Bitmap demiseGroundObstacle;
     public static Bitmap demiseFlyingObstacle;
+
+    public static Bitmap coin;
+    public static Bitmap coins;
+    public static Bitmap heart;
+    public static Bitmap lifeContainer;
 
     public static int playerHeight;
     public static int runnerJumpsWidth;
@@ -82,6 +99,12 @@ public class Assets {
     public static int plantaObstacleWidth;
     public static int demiseGroundObstacleWidth;
     public static int demiseFlyingObstacleWidth;
+
+    public static int hudHeight;
+    public static int coinHudWidth;
+    public static int coinsHudWidth;
+    public static int heartHudWidth;
+    public static int lifecontainerHudWidth;
 
 
 
@@ -136,6 +159,22 @@ public class Assets {
 
         if (demiseFlyingObstacle != null){
             demiseFlyingObstacle.recycle();
+        }
+
+        if (coin != null){
+            coin.recycle();
+        }
+
+        if (coins != null){
+            coins.recycle();
+        }
+
+        if (heart != null){
+            heart.recycle();
+        }
+
+        if (lifeContainer != null){
+            lifeContainer.recycle();
         }
 
 
@@ -235,6 +274,28 @@ public class Assets {
                 heightForFlyingObstacles, true);
 
 
+        hudHeight = (int) (playerHeight * HEIGHT_RATIO_HUD);
+
+        coinHudWidth = (hudHeight * COIN_FRAME_WIDTH) /
+                COIN_FRAME_HEIGHT;
+        coin = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(
+                resources, R.drawable.coin), coinHudWidth, hudHeight, true);
+
+        coinsHudWidth = (hudHeight * COINS_FRAME_WIDTH) /
+                COINS_FRAME_HEIGHT;
+        coins = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(
+                resources, R.drawable.monedas), coinsHudWidth * COINS_NUMBER_OF_FRAMES, hudHeight, true);
+
+        heartHudWidth = (hudHeight * HEART_FRAME_WIDTH) /
+                HEART_FRAME_HEIGHT;
+        heart = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(
+                resources, R.drawable.corazon), heartHudWidth, hudHeight, true);
+
+        //lifecontainerHudWidth = (hudHeight * LIFECONTAINER_FRAME_WIDTH) / LIFECONTAINER_FRAME_HEIGHT;
+        lifecontainerHudWidth = LIFECONTAINERWIDTH;
+
+        lifeContainer = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(
+                resources, R.drawable.pipelife), lifecontainerHudWidth, hudHeight + LIFECONTAINERWIDTH/6, true);
     }
 
 }

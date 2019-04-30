@@ -1,4 +1,4 @@
-package com.example.jorge.ujirunnerapp.testObstacles;
+package com.example.jorge.ujirunnerapp.testLevelsHUD;
 
 import android.graphics.Rect;
 
@@ -15,7 +15,12 @@ enum RunnerState
     RUNNING, CROUCHING, JUMPING;
 }
 
-public class TestObstaclesModel {
+enum Level
+{
+    EASY, MEDIUM, HARD;
+}
+
+public class TestLevelsHudModel {
 
     public static final int STAGE_WIDTH = 480;
     public static final int STAGE_HEIGHT = 320;
@@ -23,6 +28,9 @@ public class TestObstaclesModel {
     public static final int PARALLAX_LAYERS = 5;
     public static final int START_X = STAGE_WIDTH / 8;
     public static final int END_X = (STAGE_WIDTH * 5) / 8;
+    public static final int TOP_HUD = 15;
+    public static final int COIN_X = (STAGE_WIDTH * 2) / 3;
+    public static final int LIFE_MARGIN = 10;
 
     private static final float UNIT_TIME = 1f / 30;
     private static final int RUNNER_SPEED = 70;
@@ -30,6 +38,7 @@ public class TestObstaclesModel {
     private static final int MARGIN = 50;
     private static final int MARGIN_BOTTOM = 0;
     private static final int MARGIN_TOP = 40;
+    private static final int MARGIN_X = 40;
 
     public static final int POOL_OBSTACLES_SIZE = 12;
     /**public static final float PROBABILITY_BOB = 0.25f;
@@ -40,12 +49,17 @@ public class TestObstaclesModel {
 
     private static final float TIME_BETWEEN_GROUND_OBSTACLES = 6.0f;
     private static final float TIME_BETWEEN_FLYING_OBSTACLES = 6.0f;
-    private static final double PROB_ACTIVATION_GROUND_OBSTACLE = 0.5;
+    private static final double PROB_ACTIVATION_GROUND_OBSTACLE = 0.7;
+    private static final double PROB_ACTIVATION_FLYING_OBSTACLE = 0.6;
     private static final float DELAY_OBSTACLE = 5.0f;   //5.0f
+    private static final float TIME_BETWEEN_ADD = 2.0f;
+
+    public static final int MAXLIFE = 100;
 
 
     private float timeSinceLastGroundObstacle;
     private float timeSinceLastFlyingObstacle;
+    private float timeElapsedRunning;
 
 
     private Sprite[] poolGroundObstacles;
@@ -61,8 +75,6 @@ public class TestObstaclesModel {
     private int poolGroundDemiseIndex;
     private int poolFlyingDemiseIndex;
     private List<Sprite> demises;
-
-
 
     private float tickTime;
 
@@ -88,10 +100,46 @@ public class TestObstaclesModel {
     private boolean isRunningForward;
     private boolean isRunningBackwards;
 
-    private int time;
+    private int currentLife;
+    private int metresTravelled;
+    private int coinsCollected;
 
+    private Sprite coin;
+    private Sprite coins;
+    private Sprite heart;
+    private Sprite lifeContainer;
 
-    public TestObstaclesModel(int playerWidth, int baseline, int topline, int threshold) {
+    private Level level;
+
+    public Sprite getCoin() {
+        return coin;
+    }
+
+    public Sprite getCoins() {
+        return coins;
+    }
+
+    public Sprite getHeart() {
+        return heart;
+    }
+
+    public Sprite getLifeContainer() {
+        return lifeContainer;
+    }
+
+    public int getCurrentLife() {
+        return currentLife;
+    }
+
+    public int getMetresTravelled() {
+        return metresTravelled;
+    }
+
+    public int getCoinsCollected() {
+        return coinsCollected;
+    }
+
+    public TestLevelsHudModel(int playerWidth, int baseline, int topline, int threshold) {
         this.playerWidth = playerWidth;
         this.baseline = baseline;
         this.topline = topline;
@@ -161,6 +209,16 @@ public class TestObstaclesModel {
 
         timeSinceLastGroundObstacle = TIME_BETWEEN_GROUND_OBSTACLES;
         timeSinceLastFlyingObstacle = TIME_BETWEEN_FLYING_OBSTACLES;
+        timeElapsedRunning = 0;
+
+        currentLife = MAXLIFE;
+        metresTravelled = 0;
+        coinsCollected = 0;
+        level = Level.EASY;
+
+        coin = new Sprite(Assets.coin, false, COIN_X, TOP_HUD, 0, 0, Assets.coinHudWidth, Assets.hudHeight);
+        heart = new Sprite(Assets.heart, false, START_X - MARGIN_X, TOP_HUD, 0, 0, Assets.heartHudWidth, Assets.hudHeight);
+        lifeContainer = new Sprite(Assets.lifeContainer, false, START_X - MARGIN_X/2 , TOP_HUD - LIFE_MARGIN, 0, 0, Assets.lifecontainerHudWidth, Assets.hudHeight);
 
     }
 
@@ -181,11 +239,21 @@ public class TestObstaclesModel {
             tickTime -= UNIT_TIME;
             updateParallaxBg();
             activateGroundObstacle();
-            activateFlyingObjects();
+            activateFlyingObjects();    //dependiendo de la dificultad (metros recorridos) podemos llamar a una función diferente para que haya mayor probabilidad de aparecer para los bichos y para que EXISTA la posibilidad de que aparezcan los bichos complicados
+            addMetres();
             updateObstacles();
             updateRunner();
             checkCollisions();
             updateDemises();
+
+        }
+    }
+
+    private void addMetres() {
+        timeElapsedRunning += UNIT_TIME;
+        if (timeElapsedRunning >= TIME_BETWEEN_ADD) {
+            metresTravelled = metresTravelled + 5;
+            timeElapsedRunning = 0;
 
         }
     }
@@ -734,7 +802,7 @@ public class TestObstaclesModel {
         timeSinceLastFlyingObstacle += UNIT_TIME;
         if (timeSinceLastFlyingObstacle >= TIME_BETWEEN_FLYING_OBSTACLES) {
             r = Math.random();
-            if (r < PROB_ACTIVATION_GROUND_OBSTACLE) {      //en este caso podemos mantener la misma constante porque es justo la mitad (50%)
+            if (r < PROB_ACTIVATION_FLYING_OBSTACLE) {      //
                 // A flying obstacle is activated
                 poolFlyingObstacles[poolFlyingObstaclesIndex].setX(PARALLAX_WIDTH);
                 //la Y y la velocidad, ya están definidas al crear el obstáculo
@@ -758,6 +826,14 @@ public class TestObstaclesModel {
             }
             timeSinceLastFlyingObstacle -= TIME_BETWEEN_FLYING_OBSTACLES;
         }
+    }
+
+    private boolean isLevelEasy () {
+        return level == Level.EASY;
+    }
+
+    private boolean isLevelMedium () {
+        return level == Level.MEDIUM;
     }
 
 

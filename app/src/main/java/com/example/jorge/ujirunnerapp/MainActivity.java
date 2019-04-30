@@ -8,6 +8,7 @@ import android.widget.Button;
 
 import com.example.jorge.ujirunnerapp.testCharacter.TestCharacter;
 import com.example.jorge.ujirunnerapp.testFramework.TestFramework;
+import com.example.jorge.ujirunnerapp.testLevelsHUD.TestLevelsHud;
 import com.example.jorge.ujirunnerapp.testObstacles.TestObstacles;
 import com.example.jorge.ujirunnerapp.testParallax.TestParallax;
 
@@ -17,6 +18,7 @@ public class MainActivity extends AppCompatActivity {
     public Button parallax;
     public Button runner;
     public Button obstacles;
+    public Button levelsHud;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
         parallax = findViewById(R.id.parallaxBut);
         runner = findViewById(R.id.characterBut);
         obstacles = findViewById(R.id.obstaclesBut);
+        levelsHud = findViewById(R.id.levelsBut);
 
 
         framework.setOnClickListener(new View.OnClickListener() {
@@ -57,10 +60,19 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        levelsHud.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                testLevelsHud();
+
+            }
+        });
+
 
 
 
     }
+
 
 
 
@@ -81,6 +93,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void testObstacles() {
         Intent intent = new Intent(this, TestObstacles.class);
+        startActivity(intent);
+    }
+
+    private void testLevelsHud() {
+        Intent intent = new Intent(this, TestLevelsHud.class);
         startActivity(intent);
     }
 
