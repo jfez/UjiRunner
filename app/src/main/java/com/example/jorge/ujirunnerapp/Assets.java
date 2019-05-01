@@ -1,9 +1,17 @@
 package com.example.jorge.ujirunnerapp;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.AudioAttributes;
+import android.media.AudioManager;
+import android.media.SoundPool;
+import android.os.Build;
+
+import com.example.jorge.ujirunnerapp.framework.Sound;
+
 
 public class Assets {
 
@@ -58,6 +66,11 @@ public class Assets {
     public static final int BEATLE_FRAME_HEIGHT = 44;
     public static final int BEATLE_FRAME_WIDTH = 46;
     public static final int LIFECONTAINERWIDTH = 120;
+    public static final int IDLE_FRAME_HEIGHT = 16;
+    public static final int IDLE_FRAME_WIDTH = 28;
+
+    public static final int RESTART_WIDTH = 205;
+    public static final int RESTART_HEIGHT = 70;
 
 
 
@@ -65,6 +78,9 @@ public class Assets {
     public static final float HEIGHT_RATIO_FLYING_OBSTACLE = 0.85f;
     public static final float HEIGHT_RATIO_HUD = 0.2f;
     public static final float HEIGHT_RATIO_COINS = 0.4f;
+
+
+    private static final int MAX_SIMULT_STREAMS = 10;
 
 
     public static Bitmap[] bgLayers;
@@ -89,11 +105,16 @@ public class Assets {
     public static Bitmap heart;
     public static Bitmap lifeContainer;
 
+    public static Bitmap idleMario;
+
+    public static Bitmap restart;
+
     public static int playerHeight;
     public static int runnerJumpsWidth;
     public static int runnerJumpsHeight;
     public static int runnerCrouchesWidth;
     public static int runnerCrouchesHeight;
+    public static int idleWidth;
 
     public static int heightForGroundObstacles;
     public static int heightForFlyingObstacles;
@@ -116,6 +137,21 @@ public class Assets {
     public static int coinsWidth;
     public static int heartHudWidth;
     public static int lifecontainerHudWidth;
+
+    public static int restartWidth;
+    public static int restartHeight;
+
+
+
+    public static Sound characterJumpsSound;
+    public static Sound characterCrouchesSound;
+    public static Sound characterCollisionSound;
+    public static Sound coinCollectedSound;
+    public static Sound characterDiesSound;
+    public static Sound groundedEnemyAppearsSound;
+    public static Sound flyingEnemyAppearsSound;
+    public static Sound coinAppearsSound;
+    public static Sound recoverLifeSound;
 
 
 
@@ -196,6 +232,14 @@ public class Assets {
             beatleObstacle.recycle();
         }
 
+        if (restart != null){
+            restart.recycle();
+        }
+
+        if (idleMario != null){
+            idleMario.recycle();
+        }
+
 
 
         int[] bgLayersResources = {
@@ -219,6 +263,13 @@ public class Assets {
         characterRunning = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(
                 resources, R.drawable.runsp), playerWidth *
                 CHARACTER_RUN_NUMBER_OF_FRAMES, playerHeight, true);
+
+        idleWidth = (playerWidth * IDLE_FRAME_HEIGHT) /
+                IDLE_FRAME_WIDTH;
+
+        idleMario = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(
+                resources, R.drawable.r1), idleWidth, playerHeight, true);
+
 
 
         runnerJumpsWidth = (playerWidth * CHARACTER_JUMP_FRAME_WIDTH) /
@@ -326,6 +377,12 @@ public class Assets {
                 resources, R.drawable.pipelife), lifecontainerHudWidth, hudHeight + LIFECONTAINERWIDTH/6, true);
 
 
+        restartWidth = RESTART_WIDTH;
+        restartHeight = RESTART_HEIGHT;
+        restart = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(
+                resources, R.drawable.restart), restartWidth, restartHeight, true);
+
+
 
         coinsHeight = (int) (playerHeight * HEIGHT_RATIO_COINS);
 
@@ -334,6 +391,56 @@ public class Assets {
         coins = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(resources,
                 R.drawable.monedas), coinsWidth * COINS_NUMBER_OF_FRAMES, coinsHeight, true);
 
+
+
+        //create sounds
+
+        SoundPool soundPool = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+                ? createNewSoundPool() : createOldSoundPool();
+
+
+        characterJumpsSound = new Sound(soundPool.load(context, R.raw.jump, 0),
+                soundPool);
+
+        characterCrouchesSound = new Sound(soundPool.load(context, R.raw.crouch,
+                0), soundPool);
+
+        characterCollisionSound = new Sound(soundPool.load(context,
+                R.raw.collision, 0), soundPool);
+
+        coinCollectedSound = new Sound(soundPool.load(context, R.raw.coin,
+                0), soundPool);
+
+        characterDiesSound = new Sound(soundPool.load(context, R.raw.death,
+                0), soundPool);
+
+        coinAppearsSound = new Sound(soundPool.load(context,
+                R.raw.coinspawn, 0), soundPool);
+
+        groundedEnemyAppearsSound = new Sound(soundPool.load(context, R.raw.groundspawn,
+                0), soundPool);
+
+        flyingEnemyAppearsSound = new Sound(soundPool.load(context, R.raw.flyingspawn,
+                0), soundPool);
+
+        recoverLifeSound = new Sound(soundPool.load(context, R.raw.recoverlife,
+                0), soundPool);
+
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private static SoundPool createNewSoundPool() {
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_GAME)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build();
+        return new SoundPool.Builder()
+                .setAudioAttributes(audioAttributes)
+                .setMaxStreams(MAX_SIMULT_STREAMS)
+                .build();
+    }
+    private static SoundPool createOldSoundPool() {
+        return new SoundPool(MAX_SIMULT_STREAMS, AudioManager.STREAM_MUSIC, 0);
     }
 
 }

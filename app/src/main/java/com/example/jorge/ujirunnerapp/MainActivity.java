@@ -11,6 +11,7 @@ import com.example.jorge.ujirunnerapp.testFramework.TestFramework;
 import com.example.jorge.ujirunnerapp.testLevelsHUD.TestLevelsHud;
 import com.example.jorge.ujirunnerapp.testObstacles.TestObstacles;
 import com.example.jorge.ujirunnerapp.testParallax.TestParallax;
+import com.example.jorge.ujirunnerapp.ujiRunner.UjiRunner;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -19,17 +20,24 @@ public class MainActivity extends AppCompatActivity {
     public Button runner;
     public Button obstacles;
     public Button levelsHud;
+    public Button game;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //Poner el icono en el action Bar
+
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setIcon(R.mipmap.ic_launcher);
+
         framework = findViewById(R.id.frameworkBut);
         parallax = findViewById(R.id.parallaxBut);
         runner = findViewById(R.id.characterBut);
         obstacles = findViewById(R.id.obstaclesBut);
         levelsHud = findViewById(R.id.levelsBut);
+        game = findViewById(R.id.gameBut);
 
 
         framework.setOnClickListener(new View.OnClickListener() {
@@ -68,6 +76,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        game.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                testGame();
+            }
+        });
+
 
 
 
@@ -98,6 +113,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void testLevelsHud() {
         Intent intent = new Intent(this, TestLevelsHud.class);
+        startActivity(intent);
+    }
+
+    private void testGame() {
+        Intent intent = new Intent(this, UjiRunner.class);
         startActivity(intent);
     }
 

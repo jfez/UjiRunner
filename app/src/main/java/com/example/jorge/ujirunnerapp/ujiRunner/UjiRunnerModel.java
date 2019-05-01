@@ -1,4 +1,4 @@
-package com.example.jorge.ujirunnerapp.testLevelsHUD;
+package com.example.jorge.ujirunnerapp.ujiRunner;
 
 import android.graphics.Rect;
 
@@ -21,7 +21,24 @@ enum Level
     EASY, MEDIUM, HARD;
 }
 
-public class TestLevelsHudModel {
+enum GameState
+{
+    WAITING, PLAYING, RUNNER_DIES, END_GAME;
+}
+
+public class UjiRunnerModel {
+
+    public interface SoundPlayer {
+        void characterJumps();
+        void characterCrouches();
+        void characterCollision();
+        void coinCollected();
+        void characterDies();
+        void coinAppears();
+        void groundedEnemyAppears();
+        void flyingEnemyAppears();
+        void recoverLife();
+    }
 
     public static final int STAGE_WIDTH = 480;
     public static final int STAGE_HEIGHT = 320;
@@ -32,6 +49,10 @@ public class TestLevelsHudModel {
     public static final int TOP_HUD = 15;
     public static final int COIN_X = 280;
     public static final int LIFE_MARGIN = 10;
+    public static final int RESTART_X = (STAGE_WIDTH ) / 3;
+    public static final int RESTART_Y = (STAGE_HEIGHT ) / 3;
+    public static final int MARGIN_RESTART_X = 30;
+    public static final int MARGIN_RESTART_Y = 20;
 
     private static final float UNIT_TIME = 1f / 30;
     private static final int RUNNER_SPEED = 70;
@@ -131,12 +152,24 @@ public class TestLevelsHudModel {
     private Sprite coin;
     private Sprite heart;
     private Sprite lifeContainer;
+    private Sprite restart;
+    private Sprite idleMario;
 
     private TimedSprite[] poolCoins;
     private int poolCoinsIndex;
     private List<Sprite> coins;
 
+    private boolean finalDemise;
+
     private Level level;
+
+    private GameState gameState;
+
+    private SoundPlayer soundPlayer;
+
+    public void setSoundPlayer(SoundPlayer soundPlayer) {
+        this.soundPlayer = soundPlayer;
+    }
 
     public Sprite getCoin() {
         return coin;
@@ -166,24 +199,53 @@ public class TestLevelsHudModel {
         return coinsCollected;
     }
 
-    public TestLevelsHudModel(int playerWidth, int baseline, int topline, int threshold) {
+    public Sprite getRestart() {
+        return restart;
+    }
+
+    public Sprite getIdleMario() {
+        return idleMario;
+    }
+
+    public UjiRunnerModel(int playerWidth, int baseline, int topline, int threshold) {
         this.playerWidth = playerWidth;
         this.baseline = baseline;
         this.topline = topline;
         this.threshold = threshold;
+
+
+        start();
+
+
+
+
+    }
+
+    private void start() {
+
         tickTime = 0;
+
         isRunningForward = false;
         isRunningBackwards = false;
-
-
-        //squareX = STAGE_WIDTH / 5;
-        //squareY = baseline - this.playerWidth;
 
         speed = 60;
         speedGroundObstacles = 100;
         speedFlyingObstacles = 110;
-        //time = 3;
 
+        runnerState = RunnerState.RUNNING;
+
+        timeSinceLastGroundObstacle = TIME_BETWEEN_GROUND_OBSTACLES;
+        timeSinceLastFlyingObstacle = TIME_BETWEEN_FLYING_OBSTACLES;
+        timeElapsedRunning = 0;
+        timeSinceLastCoin = 0;
+
+        currentLife = MAXLIFE;
+        metresTravelled = 0;
+        metresForLife = 0;
+        coinsCollected = 0;
+        level = Level.EASY;
+
+        gameState = GameState.WAITING;
 
         // Set speeds and initial pos X for parallax layers
         bgParallax = new Sprite[PARALLAX_LAYERS];
@@ -207,7 +269,7 @@ public class TestLevelsHudModel {
                 Assets.playerHeight, 0, 0, playerWidth, Assets.playerHeight);
 
         // set runner state: initially running
-        runnerState = RunnerState.RUNNING;
+
 
         // store dimensions when running
         runnerWidths[runnerState.ordinal()] = playerWidth;
@@ -235,26 +297,90 @@ public class TestLevelsHudModel {
         createDemises();
         createCoins();
 
-        timeSinceLastGroundObstacle = TIME_BETWEEN_GROUND_OBSTACLES;
-        timeSinceLastFlyingObstacle = TIME_BETWEEN_FLYING_OBSTACLES;
-        timeElapsedRunning = 0;
-        timeSinceLastCoin = 0;
-
-        currentLife = MAXLIFE;
-        metresTravelled = 0;
-        metresForLife = 0;
-        coinsCollected = 0;
-        level = Level.EASY;
-
         coin = new Sprite(Assets.coin, false, COIN_X, TOP_HUD, 0, 0, Assets.coinHudWidth, Assets.hudHeight);
         heart = new Sprite(Assets.heart, false, START_X - MARGIN_X, TOP_HUD, 0, 0, Assets.heartHudWidth, Assets.hudHeight);
         lifeContainer = new Sprite(Assets.lifeContainer, false, START_X - MARGIN_X/2 , TOP_HUD - LIFE_MARGIN, 0, 0, Assets.lifecontainerHudWidth, Assets.hudHeight);
+        restart = new Sprite(Assets.restart, false, RESTART_X - MARGIN_RESTART_X , RESTART_Y + MARGIN_RESTART_Y, 0, 0, Assets.restartWidth, Assets.restartHeight);
+
+        idleMario = new Sprite(Assets.idleMario, false, START_X, this.baseline -
+                Assets.playerHeight, 0, 0, Assets.idleMario.getWidth(), Assets.idleMario.getHeight());
+
+        finalDemise = false;
 
     }
 
 
 
     public void update(float deltaTime) {
+        switch (gameState) {
+            case WAITING:
+
+                break;
+
+            case PLAYING:
+                playGame(deltaTime);
+                break;
+
+            case RUNNER_DIES:
+                finalDemise(deltaTime);
+                break;
+
+            case END_GAME:
+
+                break;
+        }
+
+
+    }
+
+    private void finalDemise(float deltaTime) {
+        tickTime+= deltaTime;
+        while (tickTime >= UNIT_TIME){
+            if (!finalDemise){
+                groundObstacles.clear();
+                flyingObstacles.clear();
+                boos.clear();
+                beatles.clear();
+                demises.clear();
+                coins.clear();
+
+                // A ground demise is activated
+                poolGroundDemise[poolGroundDemiseIndex].setX(runner.getX());
+                //la Y y la velocidad, ya están definidas al crear el obstáculo
+                poolGroundDemise[poolGroundDemiseIndex].getAnimation().resetAnimation();
+                synchronized (demises){
+                    demises.add(poolGroundDemise[poolGroundDemiseIndex]);
+                }
+
+                finalDemise = true;
+            }
+
+            tickTime -= UNIT_TIME;
+
+            updateDemises();
+
+
+
+            /*while (gameState == GameState.RUNNER_DIES){
+                Iterator<Sprite> iterator = demises.iterator();
+                while(iterator.hasNext()){
+                    Sprite sprite = iterator.next();
+
+                    sprite.setRect(sprite.getAnimation().getCurrentFrame(UNIT_TIME));
+                    if (sprite.getAnimation().hasRun()){
+                        synchronized (demises){
+                            iterator.remove();
+                            gameState = GameState.END_GAME;
+                        }
+                    }
+
+                }
+            }*/
+
+        }
+    }
+
+    private void playGame (float deltaTime) {
         tickTime += deltaTime;
         while (tickTime >= UNIT_TIME) {
             if(runnerState == RunnerState.JUMPING){
@@ -295,15 +421,24 @@ public class TestLevelsHudModel {
             updateDemises();
             updateLevel();
             recoverLife();
+            checkLife();
 
         }
     }
 
+    private void checkLife() {
+        if (currentLife <= 0){
+            gameState = GameState.RUNNER_DIES;
+            if (soundPlayer != null)
+                soundPlayer.characterDies();
+        }
+    }
 
 
     private void updateLevel() {
         if (metresTravelled > 10 && level == Level.EASY){  //600
             level = Level.MEDIUM;
+
         }
 
         if (metresTravelled > 200 && level == Level.MEDIUM){    //1500
@@ -315,6 +450,8 @@ public class TestLevelsHudModel {
         if (level == Level.EASY){
             if (metresForLife > 250){
                 currentLife = currentLife + 50;
+                if (soundPlayer != null)
+                    soundPlayer.recoverLife();
                 if (currentLife > 100){
                     currentLife = 100;
                 }
@@ -326,6 +463,8 @@ public class TestLevelsHudModel {
         else if (level == Level.MEDIUM){
             if (metresForLife > 350){
                 currentLife = currentLife + 40;
+                if (soundPlayer != null)
+                    soundPlayer.recoverLife();
                 if (currentLife > 100){
                     currentLife = 100;
                 }
@@ -337,6 +476,8 @@ public class TestLevelsHudModel {
         else if (level == Level.HARD){
             if (metresForLife > 500){
                 currentLife = currentLife + 30;
+                if (soundPlayer != null)
+                    soundPlayer.recoverLife();
                 if (currentLife > 100){
                     currentLife = 100;
                 }
@@ -392,6 +533,9 @@ public class TestLevelsHudModel {
             if (sprite.getAnimation().hasRun()){
                 synchronized (demises){
                     iterator.remove();
+                    if (gameState == GameState.RUNNER_DIES){
+                        gameState = GameState.END_GAME;
+                    }
                 }
             }
 
@@ -483,6 +627,8 @@ public class TestLevelsHudModel {
 
                 if (currentLife > 0){
                     currentLife = currentLife - 10;
+                    if (soundPlayer != null)
+                        soundPlayer.characterCollision();
                 }
 
                 if (currentLife < 0){
@@ -518,6 +664,8 @@ public class TestLevelsHudModel {
 
                 if (currentLife > 0){
                     currentLife = currentLife - 20;
+                    if (soundPlayer != null)
+                        soundPlayer.characterCollision();
                 }
 
                 if (currentLife < 0){
@@ -554,6 +702,8 @@ public class TestLevelsHudModel {
 
                     if (currentLife > 0){
                         currentLife = currentLife - 25;
+                        if (soundPlayer != null)
+                            soundPlayer.characterCollision();
                     }
 
                     if (currentLife < 0){
@@ -591,6 +741,8 @@ public class TestLevelsHudModel {
 
                     if (currentLife > 0){
                         currentLife = currentLife - 25;
+                        if (soundPlayer != null)
+                            soundPlayer.characterCollision();
                     }
 
                     if (currentLife < 0){
@@ -626,6 +778,8 @@ public class TestLevelsHudModel {
 
                     if (currentLife > 0){
                         currentLife = currentLife - 40;
+                        if (soundPlayer != null)
+                            soundPlayer.characterCollision();
                     }
 
                     if (currentLife < 0){
@@ -651,6 +805,8 @@ public class TestLevelsHudModel {
             if (runner.overlapBoundingBoxes(sprite)){
 
                 coinsCollected++;
+                if (soundPlayer != null)
+                    soundPlayer.coinCollected();
 
                 synchronized (coins){
                     iterator.remove();
@@ -861,86 +1017,98 @@ public class TestLevelsHudModel {
 
     public void onTouch(float touchX, float touchY){
 
+        if (isPlaying()){
+            if (runnerState == RunnerState.RUNNING){
+                if (touchX > threshold + runnerWidths[RunnerState.RUNNING.ordinal()] && isRunningBackwards){
+                    runner.setSpeedX(0);
+                    //runner.Move(time);
+                    isRunningBackwards = false;
+                }
 
-        if (runnerState == RunnerState.RUNNING){
-            if (touchX > threshold + runnerWidths[RunnerState.RUNNING.ordinal()] && isRunningBackwards){
-                runner.setSpeedX(0);
-                //runner.Move(time);
-                isRunningBackwards = false;
+                else if (touchX > threshold + runnerWidths[RunnerState.RUNNING.ordinal()] && isRunningForward){
+
+                }
+
+                else if (touchX > threshold + runnerWidths[RunnerState.RUNNING.ordinal()] && !isRunningForward && !isRunningBackwards){
+                    runner.setSpeedX(RUNNER_SPEED);
+                    //runner.Move(time);
+                    isRunningForward = true;
+
+                }
+
+                if (touchX < threshold && isRunningBackwards){
+
+                }
+
+                else if (touchX < threshold && isRunningForward){
+                    runner.setSpeedX(0);
+                    //runner.Move(time);
+                    isRunningForward = false;
+
+                }
+
+                else if (touchX < threshold && !isRunningForward && !isRunningBackwards){
+                    runner.setSpeedX(-RUNNER_SPEED);
+                    //runner.Move(time);
+                    isRunningBackwards = true;
+
+                }
+
+
+
+
+
+                if (touchY < topline){
+                    runnerState = RunnerState.JUMPING;
+                    runner.getAnimation(RunnerState.JUMPING.ordinal()).resetAnimation();
+                    runner.setBitmapToRender(Assets.characterJumping);
+                    runner.setSizeX(runnerWidths[RunnerState.JUMPING.ordinal()]);
+                    runner.setSizeY(runnerHeights[RunnerState.JUMPING.ordinal()]);
+                    runner.setY(topline - runnerHeights[RunnerState.JUMPING.ordinal()] - JUMP_OFFSET );       //Corriendo pasamos a salto
+                    runner.setSpeedX(0);
+                    //runner.Move(time);
+                    isRunningForward = false;
+                    isRunningBackwards = false;
+                    if (soundPlayer != null)
+                        soundPlayer.characterJumps();
+                }
+
+                else if (touchY > baseline){
+                    runnerState = RunnerState.CROUCHING;
+                    runner.getAnimation(RunnerState.CROUCHING.ordinal()).resetAnimation();
+                    runner.setBitmapToRender(Assets.characterCrouching);
+                    runner.setSizeX(runnerWidths[RunnerState.CROUCHING.ordinal()]);
+                    runner.setSizeY(runnerHeights[RunnerState.CROUCHING.ordinal()]);
+                    runner.setY(baseline - runnerHeights[RunnerState.CROUCHING.ordinal()] + MARGIN_TOP);       //Corriendo pasamos a agachar --> OJO
+                    runner.setSpeedX(0);
+                    //runner.Move(time);
+                    isRunningForward = false;
+                    isRunningBackwards = false;
+                    if (soundPlayer != null)
+                        soundPlayer.characterCrouches();
+                }
+
             }
 
-            else if (touchX > threshold + runnerWidths[RunnerState.RUNNING.ordinal()] && isRunningForward){
+            else if (runnerState == RunnerState.CROUCHING){
+                if (touchY < baseline){
+                    runnerState = RunnerState.RUNNING;
+                    runner.getAnimation(RunnerState.RUNNING.ordinal()).resetAnimation();
+                    runner.setBitmapToRender(Assets.characterRunning);
+                    runner.setSizeX(runnerWidths[RunnerState.RUNNING.ordinal()]);
+                    runner.setSizeY(runnerHeights[RunnerState.RUNNING.ordinal()]);
+                    runner.setY(baseline - runnerHeights[RunnerState.RUNNING.ordinal()] );       //Agachar pasamos a salto pero no salta sino que corre o pasamos a correr
 
-            }
-
-            else if (touchX > threshold + runnerWidths[RunnerState.RUNNING.ordinal()] && !isRunningForward && !isRunningBackwards){
-                runner.setSpeedX(RUNNER_SPEED);
-                //runner.Move(time);
-                isRunningForward = true;
-
-            }
-
-            if (touchX < threshold && isRunningBackwards){
-
-            }
-
-            else if (touchX < threshold && isRunningForward){
-                runner.setSpeedX(0);
-                //runner.Move(time);
-                isRunningForward = false;
-
-            }
-
-            else if (touchX < threshold && !isRunningForward && !isRunningBackwards){
-                runner.setSpeedX(-RUNNER_SPEED);
-                //runner.Move(time);
-                isRunningBackwards = true;
-
-            }
-
-
-
-
-
-            if (touchY < topline){
-                runnerState = RunnerState.JUMPING;
-                runner.getAnimation(RunnerState.JUMPING.ordinal()).resetAnimation();
-                runner.setBitmapToRender(Assets.characterJumping);
-                runner.setSizeX(runnerWidths[RunnerState.JUMPING.ordinal()]);
-                runner.setSizeY(runnerHeights[RunnerState.JUMPING.ordinal()]);
-                runner.setY(topline - runnerHeights[RunnerState.JUMPING.ordinal()] - JUMP_OFFSET );       //Corriendo pasamos a salto
-                runner.setSpeedX(0);
-                //runner.Move(time);
-                isRunningForward = false;
-                isRunningBackwards = false;
-            }
-
-            else if (touchY > baseline){
-                runnerState = RunnerState.CROUCHING;
-                runner.getAnimation(RunnerState.CROUCHING.ordinal()).resetAnimation();
-                runner.setBitmapToRender(Assets.characterCrouching);
-                runner.setSizeX(runnerWidths[RunnerState.CROUCHING.ordinal()]);
-                runner.setSizeY(runnerHeights[RunnerState.CROUCHING.ordinal()]);
-                runner.setY(baseline - runnerHeights[RunnerState.CROUCHING.ordinal()] + MARGIN_TOP);       //Corriendo pasamos a agachar --> OJO
-                runner.setSpeedX(0);
-                //runner.Move(time);
-                isRunningForward = false;
-                isRunningBackwards = false;
+                }
             }
 
         }
 
-        else if (runnerState == RunnerState.CROUCHING){
-            if (touchY < baseline){
-                runnerState = RunnerState.RUNNING;
-                runner.getAnimation(RunnerState.RUNNING.ordinal()).resetAnimation();
-                runner.setBitmapToRender(Assets.characterRunning);
-                runner.setSizeX(runnerWidths[RunnerState.RUNNING.ordinal()]);
-                runner.setSizeY(runnerHeights[RunnerState.RUNNING.ordinal()]);
-                runner.setY(baseline - runnerHeights[RunnerState.RUNNING.ordinal()] );       //Agachar pasamos a salto pero no salta sino que corre o pasamos a correr
-
-            }
+        else if (isWaiting()){
+            gameState = GameState.PLAYING;
         }
+
+
 
     }
 
@@ -1170,6 +1338,8 @@ public class TestLevelsHudModel {
                 poolGroundObstacles[poolGroundObstaclesIndex].getAnimation().resetAnimation();
                 synchronized (groundObstacles){
                     groundObstacles.add(poolGroundObstacles[poolGroundObstaclesIndex]);
+                    if (soundPlayer != null)
+                        soundPlayer.groundedEnemyAppears();
                 }
 
 
@@ -1208,6 +1378,8 @@ public class TestLevelsHudModel {
                 poolFlyingObstacles[poolFlyingObstaclesIndex].getAnimation().resetAnimation();
                 synchronized (flyingObstacles){
                     flyingObstacles.add(poolFlyingObstacles[poolFlyingObstaclesIndex]);
+                    if (soundPlayer != null)
+                        soundPlayer.flyingEnemyAppears();
                 }
 
 
@@ -1242,6 +1414,8 @@ public class TestLevelsHudModel {
                     poolBeatles[poolBeatlesIndex].getAnimation().resetAnimation();
                     synchronized (beatles){
                         beatles.add(poolBeatles[poolBeatlesIndex]);
+                        if (soundPlayer != null)
+                            soundPlayer.groundedEnemyAppears();
                     }
                 }
 
@@ -1252,6 +1426,8 @@ public class TestLevelsHudModel {
                     poolGroundObstacles[poolGroundObstaclesIndex].getAnimation().resetAnimation();
                     synchronized (groundObstacles){
                         groundObstacles.add(poolGroundObstacles[poolGroundObstaclesIndex]);
+                        if (soundPlayer != null)
+                            soundPlayer.groundedEnemyAppears();
                     }
                 }
 
@@ -1296,6 +1472,8 @@ public class TestLevelsHudModel {
                     poolBoos[poolBoosIndex].getAnimation().resetAnimation();
                     synchronized (boos){
                         boos.add(poolBoos[poolBoosIndex]);
+                        if (soundPlayer != null)
+                            soundPlayer.flyingEnemyAppears();
                     }
                 }
 
@@ -1306,6 +1484,8 @@ public class TestLevelsHudModel {
                     poolFlyingObstacles[poolFlyingObstaclesIndex].getAnimation().resetAnimation();
                     synchronized (flyingObstacles){
                         flyingObstacles.add(poolFlyingObstacles[poolFlyingObstaclesIndex]);
+                        if (soundPlayer != null)
+                            soundPlayer.flyingEnemyAppears();
                     }
                 }
 
@@ -1345,6 +1525,8 @@ public class TestLevelsHudModel {
                 poolCoins[poolCoinsIndex].setTimer(random);
                 synchronized (coins){
                     coins.add(poolCoins[poolCoinsIndex]);
+                    if (soundPlayer != null)
+                        soundPlayer.coinAppears();
                 }
 
 
@@ -1370,6 +1552,28 @@ public class TestLevelsHudModel {
 
     public boolean isLevelMedium () {
         return level == Level.MEDIUM;
+    }
+
+    public boolean isWaiting () {
+        return gameState == GameState.WAITING;
+    }
+
+    public boolean isPlaying () {
+        return gameState == GameState.PLAYING;
+    }
+
+    public boolean runnerDying () {
+        return gameState == GameState.RUNNER_DIES;
+    }
+
+    public boolean isOver () {
+        return gameState == GameState.END_GAME;
+    }
+
+
+    public void restartGame() {
+        start();
+
     }
 
 

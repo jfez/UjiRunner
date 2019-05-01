@@ -21,7 +21,7 @@ public class TestParallaxController implements IGameController {
 
     private static final int BASELINE = 275;
     private static final int TOPLINE = BASELINE - 55;
-    private static final int THRESHOLD = 50;
+    private static final int THRESHOLD = 200;
     private static final int SQUARE_SIZE = 40;
 
     private float scaleX;
