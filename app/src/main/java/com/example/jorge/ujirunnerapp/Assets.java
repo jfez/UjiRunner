@@ -26,6 +26,9 @@ public class Assets {
     public static final int DEMISE_GROUND_NUMBER_OF_FRAMES = 6;
     public static final int DEMISE_FLYING_NUMBER_OF_FRAMES = 5;
 
+    public static final int BOO_NUMBER_OF_FRAMES = 8;
+    public static final int BEATLE_NUMBER_OF_FRAMES = 8;
+
     public static final int COINS_NUMBER_OF_FRAMES = 6;
 
     public static final int BOB_FRAME_HEIGHT = 30;
@@ -50,8 +53,10 @@ public class Assets {
     public static final int COINS_FRAME_WIDTH = 112;
     public static final int HEART_FRAME_HEIGHT = 41;
     public static final int HEART_FRAME_WIDTH = 39;
-    public static final int LIFECONTAINER_FRAME_HEIGHT = 771;
-    public static final int LIFECONTAINER_FRAME_WIDTH = 440;
+    public static final int BOO_FRAME_HEIGHT = 34;
+    public static final int BOO_FRAME_WIDTH = 30;
+    public static final int BEATLE_FRAME_HEIGHT = 44;
+    public static final int BEATLE_FRAME_WIDTH = 46;
     public static final int LIFECONTAINERWIDTH = 120;
 
 
@@ -59,6 +64,7 @@ public class Assets {
     public static final float HEIGHT_RATIO_GROUND_OBSTACLE = 0.6f;
     public static final float HEIGHT_RATIO_FLYING_OBSTACLE = 0.85f;
     public static final float HEIGHT_RATIO_HUD = 0.2f;
+    public static final float HEIGHT_RATIO_COINS = 0.4f;
 
 
     public static Bitmap[] bgLayers;
@@ -73,6 +79,8 @@ public class Assets {
     public static Bitmap goombaVoladorObstacle;
     public static Bitmap lakituObstacle;
     public static Bitmap plantaObstacle;
+    public static Bitmap booObstacle;
+    public static Bitmap beatleObstacle;
     public static Bitmap demiseGroundObstacle;
     public static Bitmap demiseFlyingObstacle;
 
@@ -97,12 +105,15 @@ public class Assets {
     public static int goombaVoladorObstacleWidth;
     public static int lakituObstacleWidth;
     public static int plantaObstacleWidth;
+    public static int booObstacleWidth;
+    public static int beatleObstacleWidth;
     public static int demiseGroundObstacleWidth;
     public static int demiseFlyingObstacleWidth;
 
     public static int hudHeight;
+    public static int coinsHeight;
     public static int coinHudWidth;
-    public static int coinsHudWidth;
+    public static int coinsWidth;
     public static int heartHudWidth;
     public static int lifecontainerHudWidth;
 
@@ -175,6 +186,14 @@ public class Assets {
 
         if (lifeContainer != null){
             lifeContainer.recycle();
+        }
+
+        if (booObstacle != null){
+            booObstacle.recycle();
+        }
+
+        if (beatleObstacle != null){
+            beatleObstacle.recycle();
         }
 
 
@@ -274,6 +293,19 @@ public class Assets {
                 heightForFlyingObstacles, true);
 
 
+
+        beatleObstacleWidth = (heightForGroundObstacles * BEATLE_FRAME_WIDTH) /
+                BEATLE_FRAME_HEIGHT;
+        beatleObstacle = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(resources,
+                R.drawable.beatle), beatleObstacleWidth * BEATLE_NUMBER_OF_FRAMES, heightForGroundObstacles, true);
+
+        booObstacleWidth = (heightForFlyingObstacles * BOO_FRAME_WIDTH) /
+                BOO_FRAME_HEIGHT;
+        booObstacle = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(
+                resources, R.drawable.boo), booObstacleWidth * BOO_NUMBER_OF_FRAMES,
+                heightForFlyingObstacles, true);
+
+
         hudHeight = (int) (playerHeight * HEIGHT_RATIO_HUD);
 
         coinHudWidth = (hudHeight * COIN_FRAME_WIDTH) /
@@ -281,10 +313,6 @@ public class Assets {
         coin = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(
                 resources, R.drawable.coin), coinHudWidth, hudHeight, true);
 
-        coinsHudWidth = (hudHeight * COINS_FRAME_WIDTH) /
-                COINS_FRAME_HEIGHT;
-        coins = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(
-                resources, R.drawable.monedas), coinsHudWidth * COINS_NUMBER_OF_FRAMES, hudHeight, true);
 
         heartHudWidth = (hudHeight * HEART_FRAME_WIDTH) /
                 HEART_FRAME_HEIGHT;
@@ -296,6 +324,16 @@ public class Assets {
 
         lifeContainer = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(
                 resources, R.drawable.pipelife), lifecontainerHudWidth, hudHeight + LIFECONTAINERWIDTH/6, true);
+
+
+
+        coinsHeight = (int) (playerHeight * HEIGHT_RATIO_COINS);
+
+        coinsWidth = (coinsHeight * COINS_FRAME_WIDTH) /
+                COINS_FRAME_HEIGHT;
+        coins = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(resources,
+                R.drawable.monedas), coinsWidth * COINS_NUMBER_OF_FRAMES, coinsHeight, true);
+
     }
 
 }

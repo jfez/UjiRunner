@@ -5,6 +5,7 @@ import android.graphics.Rect;
 import com.example.jorge.ujirunnerapp.Assets;
 import com.example.jorge.ujirunnerapp.model.Animation;
 import com.example.jorge.ujirunnerapp.model.Sprite;
+import com.example.jorge.ujirunnerapp.model.TimedSprite;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -29,18 +30,19 @@ public class TestLevelsHudModel {
     public static final int START_X = STAGE_WIDTH / 8;
     public static final int END_X = (STAGE_WIDTH * 5) / 8;
     public static final int TOP_HUD = 15;
-    public static final int COIN_X = (STAGE_WIDTH * 2) / 3;
+    public static final int COIN_X = 280;
     public static final int LIFE_MARGIN = 10;
 
     private static final float UNIT_TIME = 1f / 30;
     private static final int RUNNER_SPEED = 70;
     private static final int JUMP_OFFSET = 10;
     private static final int MARGIN = 50;
-    private static final int MARGIN_BOTTOM = 0;
+    private static final int MARGIN_BOTTOM = 10;
     private static final int MARGIN_TOP = 40;
     private static final int MARGIN_X = 40;
 
     public static final int POOL_OBSTACLES_SIZE = 12;
+    public static final int POOL_COINS_SIZE = 5;
     /**public static final float PROBABILITY_BOB = 0.25f;
     public static final float PROBABILITY_CHOP = 0.25f;
     public static final float PROBABILITY_GOOMBA = 0.25f;
@@ -49,9 +51,21 @@ public class TestLevelsHudModel {
 
     private static final float TIME_BETWEEN_GROUND_OBSTACLES = 6.0f;
     private static final float TIME_BETWEEN_FLYING_OBSTACLES = 6.0f;
+    private static final float TIME_BETWEEN_COINS = 6.0f;
     private static final double PROB_ACTIVATION_GROUND_OBSTACLE = 0.7;
     private static final double PROB_ACTIVATION_FLYING_OBSTACLE = 0.6;
-    private static final float DELAY_OBSTACLE = 5.0f;   //5.0f
+
+    private static final float TIME_BETWEEN_GROUND_OBSTACLES2 = 3.0f;
+    private static final float TIME_BETWEEN_FLYING_OBSTACLES2 = 3.0f;
+    private static final double PROB_ACTIVATION_GROUND_OBSTACLE2 = 0.8;
+    private static final double PROB_ACTIVATION_FLYING_OBSTACLE2 = 0.7;
+    private static final double PROB_ACTIVATION_SPECIAL_ENEMY = 0.4;
+    private static final float DELAY_OBSTACLE2 = 2.0f;
+
+    private static final double PROB_ACTIVATION_COIN = 0.5;
+    private static final float DELAY_OBSTACLE = 5.0f;
+
+    private static final float DELAY_COIN = 2.0f;   //5.0f
     private static final float TIME_BETWEEN_ADD = 2.0f;
 
     public static final int MAXLIFE = 100;
@@ -60,6 +74,7 @@ public class TestLevelsHudModel {
     private float timeSinceLastGroundObstacle;
     private float timeSinceLastFlyingObstacle;
     private float timeElapsedRunning;
+    private float timeSinceLastCoin;
 
 
     private Sprite[] poolGroundObstacles;
@@ -69,6 +84,14 @@ public class TestLevelsHudModel {
     private Sprite[] poolFlyingObstacles;
     private int poolFlyingObstaclesIndex;
     private List<Sprite> flyingObstacles;
+
+    private Sprite[] poolBeatles;
+    private int poolBeatlesIndex;
+    private List<Sprite> beatles;
+
+    private Sprite[] poolBoos;
+    private int poolBoosIndex;
+    private List<Sprite> boos;
 
     private Sprite[] poolGroundDemise;
     private Sprite[] poolFlyingDemise;
@@ -102,12 +125,16 @@ public class TestLevelsHudModel {
 
     private int currentLife;
     private int metresTravelled;
+    private int metresForLife;
     private int coinsCollected;
 
     private Sprite coin;
-    private Sprite coins;
     private Sprite heart;
     private Sprite lifeContainer;
+
+    private TimedSprite[] poolCoins;
+    private int poolCoinsIndex;
+    private List<Sprite> coins;
 
     private Level level;
 
@@ -115,7 +142,7 @@ public class TestLevelsHudModel {
         return coin;
     }
 
-    public Sprite getCoins() {
+    public List<Sprite> getCoins() {
         return coins;
     }
 
@@ -206,13 +233,16 @@ public class TestLevelsHudModel {
 
         createObstacles();
         createDemises();
+        createCoins();
 
         timeSinceLastGroundObstacle = TIME_BETWEEN_GROUND_OBSTACLES;
         timeSinceLastFlyingObstacle = TIME_BETWEEN_FLYING_OBSTACLES;
         timeElapsedRunning = 0;
+        timeSinceLastCoin = 0;
 
         currentLife = MAXLIFE;
         metresTravelled = 0;
+        metresForLife = 0;
         coinsCollected = 0;
         level = Level.EASY;
 
@@ -221,6 +251,8 @@ public class TestLevelsHudModel {
         lifeContainer = new Sprite(Assets.lifeContainer, false, START_X - MARGIN_X/2 , TOP_HUD - LIFE_MARGIN, 0, 0, Assets.lifecontainerHudWidth, Assets.hudHeight);
 
     }
+
+
 
     public void update(float deltaTime) {
         tickTime += deltaTime;
@@ -238,21 +270,89 @@ public class TestLevelsHudModel {
 
             tickTime -= UNIT_TIME;
             updateParallaxBg();
-            activateGroundObstacle();
-            activateFlyingObjects();    //dependiendo de la dificultad (metros recorridos) podemos llamar a una función diferente para que haya mayor probabilidad de aparecer para los bichos y para que EXISTA la posibilidad de que aparezcan los bichos complicados
+            //dependiendo de la dificultad (metros recorridos) podemos llamar a una función diferente para que haya mayor probabilidad de aparecer para los bichos y para que EXISTA la posibilidad de que aparezcan los bichos complicados
+
+            if (level == Level.EASY){
+                activateGroundObstacle();
+                activateFlyingObjects();
+            }
+
+            else if (level == Level.MEDIUM){
+                activateGroundObstacle2();
+                activateFlyingObjects();
+            }
+
+            else if (level == Level.HARD){
+                activateGroundObstacle2();
+                activateFlyingObjects2();
+            }
+
+            activateCoins();
             addMetres();
             updateObstacles();
             updateRunner();
             checkCollisions();
             updateDemises();
+            updateLevel();
+            recoverLife();
 
         }
     }
+
+
+
+    private void updateLevel() {
+        if (metresTravelled > 10 && level == Level.EASY){  //600
+            level = Level.MEDIUM;
+        }
+
+        if (metresTravelled > 200 && level == Level.MEDIUM){    //1500
+            level = Level.HARD;
+        }
+    }
+
+    private void recoverLife() {
+        if (level == Level.EASY){
+            if (metresForLife > 250){
+                currentLife = currentLife + 50;
+                if (currentLife > 100){
+                    currentLife = 100;
+                }
+                metresForLife = 0;
+            }
+
+        }
+
+        else if (level == Level.MEDIUM){
+            if (metresForLife > 350){
+                currentLife = currentLife + 40;
+                if (currentLife > 100){
+                    currentLife = 100;
+                }
+                metresForLife = 0;
+            }
+
+        }
+
+        else if (level == Level.HARD){
+            if (metresForLife > 500){
+                currentLife = currentLife + 30;
+                if (currentLife > 100){
+                    currentLife = 100;
+                }
+                metresForLife = 0;
+            }
+
+        }
+
+    }
+
 
     private void addMetres() {
         timeElapsedRunning += UNIT_TIME;
         if (timeElapsedRunning >= TIME_BETWEEN_ADD) {
             metresTravelled = metresTravelled + 5;
+            metresForLife = metresForLife + 5;
             timeElapsedRunning = 0;
 
         }
@@ -298,6 +398,14 @@ public class TestLevelsHudModel {
         }
 
 
+    }
+
+    public List<Sprite> getBeatles() {
+        return beatles;
+    }
+
+    public List<Sprite> getBoos() {
+        return boos;
     }
 
     private void checkCollisions() {
@@ -373,6 +481,14 @@ public class TestLevelsHudModel {
                     iterator.remove();
                 }
 
+                if (currentLife > 0){
+                    currentLife = currentLife - 10;
+                }
+
+                if (currentLife < 0){
+                    currentLife = 0;
+                }
+
 
                 poolGroundDemiseIndex++;
 
@@ -400,6 +516,14 @@ public class TestLevelsHudModel {
                     iterator.remove();
                 }
 
+                if (currentLife > 0){
+                    currentLife = currentLife - 20;
+                }
+
+                if (currentLife < 0){
+                    currentLife = 0;
+                }
+
 
                 poolFlyingDemiseIndex++;
 
@@ -410,8 +534,131 @@ public class TestLevelsHudModel {
 
         }
 
+        if (level == Level.MEDIUM){
+            iterator = beatles.iterator();
+            while(iterator.hasNext()){
+                Sprite sprite = iterator.next();
+
+                if (runner.overlapBoundingBoxes(sprite)){
+                    // A ground demise is activated
+                    poolGroundDemise[poolGroundDemiseIndex].setX(runner.getX() + MARGIN);
+                    //la Y y la velocidad, ya están definidas al crear el obstáculo
+                    poolGroundDemise[poolGroundDemiseIndex].getAnimation().resetAnimation();
+                    synchronized (demises){
+                        demises.add(poolGroundDemise[poolGroundDemiseIndex]);
+                    }
+
+                    synchronized (beatles){
+                        iterator.remove();
+                    }
+
+                    if (currentLife > 0){
+                        currentLife = currentLife - 25;
+                    }
+
+                    if (currentLife < 0){
+                        currentLife = 0;
+                    }
 
 
+                    poolGroundDemiseIndex++;
+
+                    if (poolGroundDemiseIndex >= POOL_OBSTACLES_SIZE){
+                        poolGroundDemiseIndex = 0;
+                    }
+                }
+
+            }
+        }
+
+        if (level == Level.HARD){
+            iterator = beatles.iterator();
+            while(iterator.hasNext()){
+                Sprite sprite = iterator.next();
+
+                if (runner.overlapBoundingBoxes(sprite)){
+                    // A ground demise is activated
+                    poolGroundDemise[poolGroundDemiseIndex].setX(runner.getX() + MARGIN);
+                    //la Y y la velocidad, ya están definidas al crear el obstáculo
+                    poolGroundDemise[poolGroundDemiseIndex].getAnimation().resetAnimation();
+                    synchronized (demises){
+                        demises.add(poolGroundDemise[poolGroundDemiseIndex]);
+                    }
+
+                    synchronized (beatles){
+                        iterator.remove();
+                    }
+
+                    if (currentLife > 0){
+                        currentLife = currentLife - 25;
+                    }
+
+                    if (currentLife < 0){
+                        currentLife = 0;
+                    }
+
+
+                    poolGroundDemiseIndex++;
+
+                    if (poolGroundDemiseIndex >= POOL_OBSTACLES_SIZE){
+                        poolGroundDemiseIndex = 0;
+                    }
+                }
+
+            }
+
+            iterator = boos.iterator();
+            while(iterator.hasNext()){
+                Sprite sprite = iterator.next();
+
+                if (runner.overlapBoundingBoxes(sprite)){
+                    // A flying demise is activated
+                    poolFlyingDemise[poolFlyingDemiseIndex].setX(runner.getX() + MARGIN);
+                    //la Y y la velocidad, ya están definidas al crear el obstáculo
+                    poolFlyingDemise[poolFlyingDemiseIndex].getAnimation().resetAnimation();
+                    synchronized (demises){
+                        demises.add(poolFlyingDemise[poolFlyingDemiseIndex]);
+                    }
+
+                    synchronized (boos){
+                        iterator.remove();
+                    }
+
+                    if (currentLife > 0){
+                        currentLife = currentLife - 40;
+                    }
+
+                    if (currentLife < 0){
+                        currentLife = 0;
+                    }
+
+
+                    poolFlyingDemiseIndex++;
+
+                    if (poolFlyingDemiseIndex >= POOL_OBSTACLES_SIZE){
+                        poolFlyingDemiseIndex = 0;
+                    }
+                }
+
+            }
+        }
+
+
+        iterator = coins.iterator();
+        while(iterator.hasNext()){
+            Sprite sprite = iterator.next();
+
+            if (runner.overlapBoundingBoxes(sprite)){
+
+                coinsCollected++;
+
+                synchronized (coins){
+                    iterator.remove();
+                }
+
+            }
+
+        }
 
 
 
@@ -481,6 +728,82 @@ public class TestLevelsHudModel {
                 }
 
             }
+
+        }
+
+        if (level == Level.MEDIUM){
+            iterator = beatles.iterator();
+            while(iterator.hasNext()){
+                Sprite sprite = iterator.next();
+
+                sprite.Move(UNIT_TIME);
+                sprite.setRect(sprite.getAnimation().getCurrentFrame(UNIT_TIME));
+
+                if (sprite.getX() < 0 - sprite.getSizeX()){
+                    synchronized (beatles){
+                        iterator.remove();
+                    }
+
+                }
+
+            }
+        }
+
+        else if (level == Level.HARD){
+            iterator = beatles.iterator();
+            while(iterator.hasNext()){
+                Sprite sprite = iterator.next();
+
+                sprite.Move(UNIT_TIME);
+                sprite.setRect(sprite.getAnimation().getCurrentFrame(UNIT_TIME));
+
+                if (sprite.getX() < 0 - sprite.getSizeX()){
+                    synchronized (beatles){
+                        iterator.remove();
+                    }
+
+                }
+
+            }
+
+            iterator = boos.iterator();
+            while(iterator.hasNext()){
+                Sprite sprite = iterator.next();
+
+                sprite.Move(UNIT_TIME);
+                sprite.setRect(sprite.getAnimation().getCurrentFrame(UNIT_TIME));
+
+                if (sprite.getX() < 0 - sprite.getSizeX()){
+                    synchronized (boos){
+                        iterator.remove();
+                    }
+
+                }
+
+            }
+        }
+
+        iterator = coins.iterator();
+        while(iterator.hasNext()){
+            Sprite sprite = iterator.next();
+
+            sprite.Move(UNIT_TIME);
+            sprite.setRect(sprite.getAnimation().getCurrentFrame(UNIT_TIME));
+
+            if (sprite.getX() < 0 - sprite.getSizeX()){
+                synchronized (coins){
+                    iterator.remove();
+                }
+
+            }
+
+            if(((TimedSprite)sprite).timedOut()){
+                synchronized (coins){
+                    iterator.remove();
+                }
+            }
+
+            ((TimedSprite)sprite).updateTimer(UNIT_TIME);       //actualizar el timer de cada moneda
 
         }
 
@@ -637,19 +960,19 @@ public class TestLevelsHudModel {
         groundObstacles = new ArrayList<>();
 
         Sprite bob = new Sprite(Assets.bobObstacle, true, PARALLAX_WIDTH, this.baseline -
-                Assets.heightForGroundObstacles - MARGIN_BOTTOM, -speedGroundObstacles,
+                Assets.heightForGroundObstacles, -speedGroundObstacles,
                 0, Assets.bobObstacleWidth, Assets.heightForGroundObstacles);
 
         Sprite chomp = new Sprite(Assets.chompObstacle, true, PARALLAX_WIDTH, this.baseline -
-                Assets.heightForGroundObstacles - MARGIN_BOTTOM, -speedGroundObstacles,
+                Assets.heightForGroundObstacles, -speedGroundObstacles,
                 0, Assets.chompObstacleWidth, Assets.heightForGroundObstacles);
 
         Sprite goomba = new Sprite(Assets.goombaObstacle, true, PARALLAX_WIDTH, this.baseline -
-                Assets.heightForGroundObstacles - MARGIN_BOTTOM, -speedGroundObstacles,
+                Assets.heightForGroundObstacles, -speedGroundObstacles,
                 0, Assets.goombaObstacleWidth, Assets.heightForGroundObstacles);
 
         Sprite planta = new Sprite(Assets.plantaObstacle, true, PARALLAX_WIDTH, this.baseline -
-                Assets.heightForGroundObstacles - MARGIN_BOTTOM, -speedGroundObstacles,
+                Assets.heightForGroundObstacles, -speedGroundObstacles,
                 0, Assets.plantaObstacleWidth, Assets.heightForGroundObstacles);
 
         for (int i = 0; i < POOL_OBSTACLES_SIZE; i++){
@@ -720,6 +1043,76 @@ public class TestLevelsHudModel {
 
         poolFlyingObstaclesIndex = 0;
 
+
+
+        poolBeatles = new Sprite[POOL_OBSTACLES_SIZE];
+        beatles = new ArrayList<>();
+
+        Sprite beatleSprite = new Sprite(Assets.beatleObstacle, true, PARALLAX_WIDTH, this.baseline -
+                Assets.heightForGroundObstacles + MARGIN_BOTTOM , -speedGroundObstacles,
+                0, Assets.bobObstacleWidth, Assets.heightForGroundObstacles);
+
+        for (int i = 0; i < POOL_OBSTACLES_SIZE; i++){
+
+            poolBeatles[i] = beatleSprite;
+
+
+        }
+
+        beatleSprite.addAnimation(new Animation(1, Assets.BEATLE_NUMBER_OF_FRAMES, Assets.beatleObstacle.getWidth() / Assets.BEATLE_NUMBER_OF_FRAMES,
+                Assets.beatleObstacle.getHeight(), Assets.beatleObstacle.getWidth(), 10));
+
+        poolBeatlesIndex = 0;
+
+
+        poolBoos = new Sprite[POOL_OBSTACLES_SIZE];
+        boos = new ArrayList<>();
+
+        Sprite booSprite = new Sprite(Assets.booObstacle, true, PARALLAX_WIDTH, topline -MARGIN_TOP, -speedFlyingObstacles,
+                0, Assets.booObstacleWidth, Assets.heightForFlyingObstacles);
+
+        for (int i = 0; i < POOL_OBSTACLES_SIZE; i++){
+
+            poolBoos[i] = booSprite;
+
+
+        }
+
+        booSprite.addAnimation(new Animation(1, Assets.BOO_NUMBER_OF_FRAMES, Assets.booObstacle.getWidth() / Assets.BOO_NUMBER_OF_FRAMES,
+                Assets.booObstacle.getHeight(), Assets.booObstacle.getWidth(), 10));
+
+        poolBoosIndex = 0;
+
+    }
+
+    private void createCoins() {
+        poolCoins = new TimedSprite[POOL_COINS_SIZE];
+
+        coins = new ArrayList<>();
+
+
+        int random = (int )(Math.random() * 8 + 3);
+
+        TimedSprite coinGame = new TimedSprite(Assets.coins, false, PARALLAX_WIDTH, this.baseline -
+                Assets.coinsHeight - MARGIN_BOTTOM, -speedGroundObstacles,
+                0, Assets.coinsWidth, Assets.coinsHeight, random);
+
+
+
+        for (int i = 0; i < POOL_COINS_SIZE; i++){
+
+            poolCoins[i] = coinGame;
+
+
+        }
+
+        coinGame.addAnimation(new Animation(1, Assets.COINS_NUMBER_OF_FRAMES, Assets.coins.getWidth() / Assets.COINS_NUMBER_OF_FRAMES,
+                Assets.coins.getHeight(), Assets.coins.getWidth(), 10));
+
+
+
+        poolCoinsIndex = 0;
+
     }
 
     public List<Sprite> getGroundObstacles() {
@@ -782,8 +1175,14 @@ public class TestLevelsHudModel {
 
                 if (TIME_BETWEEN_FLYING_OBSTACLES - timeSinceLastFlyingObstacle -
                         UNIT_TIME <= DELAY_OBSTACLE) {
-                    timeSinceLastFlyingObstacle = TIME_BETWEEN_FLYING_OBSTACLES -
-                            UNIT_TIME - DELAY_OBSTACLE;
+                    //timeSinceLastFlyingObstacle = TIME_BETWEEN_FLYING_OBSTACLES - UNIT_TIME - DELAY_OBSTACLE;
+                    timeSinceLastFlyingObstacle = 0;
+                }
+
+                if (TIME_BETWEEN_COINS - timeSinceLastCoin -
+                        UNIT_TIME <= DELAY_COIN) {
+                    timeSinceLastCoin = TIME_BETWEEN_COINS -
+                            UNIT_TIME - DELAY_COIN;
                 }
 
                 poolGroundObstaclesIndex++;
@@ -793,7 +1192,7 @@ public class TestLevelsHudModel {
                 }
 
             }
-            timeSinceLastGroundObstacle -= TIME_BETWEEN_GROUND_OBSTACLES;
+            timeSinceLastGroundObstacle = 0;
         }
     }
 
@@ -814,8 +1213,8 @@ public class TestLevelsHudModel {
 
                 if (TIME_BETWEEN_GROUND_OBSTACLES - timeSinceLastGroundObstacle -
                         UNIT_TIME <= DELAY_OBSTACLE) {
-                    timeSinceLastGroundObstacle = TIME_BETWEEN_GROUND_OBSTACLES -
-                            UNIT_TIME - DELAY_OBSTACLE;
+                    //timeSinceLastGroundObstacle = TIME_BETWEEN_GROUND_OBSTACLES - UNIT_TIME - DELAY_OBSTACLE;
+                    timeSinceLastGroundObstacle = 0;
                 }
 
                 poolFlyingObstaclesIndex++;
@@ -824,15 +1223,152 @@ public class TestLevelsHudModel {
                     poolFlyingObstaclesIndex = 0;
                 }
             }
-            timeSinceLastFlyingObstacle -= TIME_BETWEEN_FLYING_OBSTACLES;
+            timeSinceLastFlyingObstacle = 0;
         }
     }
 
-    private boolean isLevelEasy () {
+    private void activateGroundObstacle2() {
+        double r;
+        double r2;
+        timeSinceLastGroundObstacle += UNIT_TIME;
+        if (timeSinceLastGroundObstacle >= TIME_BETWEEN_GROUND_OBSTACLES2) {
+            r = Math.random();
+            if (r < PROB_ACTIVATION_GROUND_OBSTACLE2) {
+                r2 = Math.random();
+                if (r2 < PROB_ACTIVATION_SPECIAL_ENEMY){
+                    // A special enemy ground is activated
+                    poolBeatles[poolBeatlesIndex].setX(PARALLAX_WIDTH);
+                    //la Y y la velocidad, ya están definidas al crear el obstáculo
+                    poolBeatles[poolBeatlesIndex].getAnimation().resetAnimation();
+                    synchronized (beatles){
+                        beatles.add(poolBeatles[poolBeatlesIndex]);
+                    }
+                }
+
+                else {
+                    // A ground obstacle is activated
+                    poolGroundObstacles[poolGroundObstaclesIndex].setX(PARALLAX_WIDTH);
+                    //la Y y la velocidad, ya están definidas al crear el obstáculo
+                    poolGroundObstacles[poolGroundObstaclesIndex].getAnimation().resetAnimation();
+                    synchronized (groundObstacles){
+                        groundObstacles.add(poolGroundObstacles[poolGroundObstaclesIndex]);
+                    }
+                }
+
+
+
+                if (TIME_BETWEEN_FLYING_OBSTACLES2 - timeSinceLastFlyingObstacle -
+                        UNIT_TIME <= DELAY_OBSTACLE2) {
+                    //timeSinceLastFlyingObstacle = TIME_BETWEEN_FLYING_OBSTACLES2 - UNIT_TIME - DELAY_OBSTACLE2;
+                    timeSinceLastFlyingObstacle = 0;
+                }
+
+                if (TIME_BETWEEN_COINS - timeSinceLastCoin -
+                        UNIT_TIME <= DELAY_COIN) {
+                    timeSinceLastCoin = TIME_BETWEEN_COINS -
+                            UNIT_TIME - DELAY_COIN;
+                }
+
+                poolGroundObstaclesIndex++;
+
+                if (poolGroundObstaclesIndex >= POOL_OBSTACLES_SIZE){
+                    poolGroundObstaclesIndex = 0;
+                }
+
+            }
+            timeSinceLastGroundObstacle = 0;
+        }
+
+    }
+
+    private void activateFlyingObjects2() {
+        double r;
+        double r2;
+        timeSinceLastFlyingObstacle += UNIT_TIME;
+        if (timeSinceLastFlyingObstacle >= TIME_BETWEEN_FLYING_OBSTACLES2) {
+            r = Math.random();
+            if (r < PROB_ACTIVATION_FLYING_OBSTACLE2) {
+                r2 = Math.random();
+                if (r2 < PROB_ACTIVATION_SPECIAL_ENEMY){
+                    // A flying especial enemy is activated
+                    poolBoos[poolBoosIndex].setX(PARALLAX_WIDTH);
+                    //la Y y la velocidad, ya están definidas al crear el obstáculo
+                    poolBoos[poolBoosIndex].getAnimation().resetAnimation();
+                    synchronized (boos){
+                        boos.add(poolBoos[poolBoosIndex]);
+                    }
+                }
+
+                else {
+                    // A flying obstacle is activated
+                    poolFlyingObstacles[poolFlyingObstaclesIndex].setX(PARALLAX_WIDTH);
+                    //la Y y la velocidad, ya están definidas al crear el obstáculo
+                    poolFlyingObstacles[poolFlyingObstaclesIndex].getAnimation().resetAnimation();
+                    synchronized (flyingObstacles){
+                        flyingObstacles.add(poolFlyingObstacles[poolFlyingObstaclesIndex]);
+                    }
+                }
+
+
+
+                if (TIME_BETWEEN_GROUND_OBSTACLES2 - timeSinceLastGroundObstacle -
+                        UNIT_TIME <= DELAY_OBSTACLE2) {
+                    //timeSinceLastGroundObstacle = TIME_BETWEEN_GROUND_OBSTACLES2 - UNIT_TIME - DELAY_OBSTACLE2;
+                    timeSinceLastGroundObstacle = 0;
+                }
+
+                poolFlyingObstaclesIndex++;
+
+                if (poolFlyingObstaclesIndex >= POOL_OBSTACLES_SIZE){
+                    poolFlyingObstaclesIndex = 0;
+                }
+            }
+            timeSinceLastFlyingObstacle = 0;
+        }
+
+    }
+
+
+
+
+    private void activateCoins() {
+        double r;
+        timeSinceLastCoin += UNIT_TIME;
+        if (timeSinceLastCoin >= TIME_BETWEEN_COINS) {
+            r = Math.random();
+            if (r < PROB_ACTIVATION_COIN) {
+                // A coin is activated
+                poolCoins[poolCoinsIndex].setX(PARALLAX_WIDTH);
+                //la Y y la velocidad, ya están definidas al crear el obstáculo
+                poolCoins[poolCoinsIndex].getAnimation().resetAnimation();
+                int random = (int )(Math.random() * 8 + 3);
+                poolCoins[poolCoinsIndex].setTimer(random);
+                synchronized (coins){
+                    coins.add(poolCoins[poolCoinsIndex]);
+                }
+
+
+                if (TIME_BETWEEN_GROUND_OBSTACLES - timeSinceLastGroundObstacle -
+                        UNIT_TIME <= DELAY_COIN) {
+                    timeSinceLastGroundObstacle = TIME_BETWEEN_GROUND_OBSTACLES -
+                            UNIT_TIME - DELAY_COIN;
+                }
+
+                poolCoinsIndex++;
+
+                if (poolCoinsIndex >= POOL_COINS_SIZE){
+                    poolCoinsIndex = 0;
+                }
+            }
+            timeSinceLastCoin -= TIME_BETWEEN_COINS;
+        }
+    }
+
+    public boolean isLevelEasy () {
         return level == Level.EASY;
     }
 
-    private boolean isLevelMedium () {
+    public boolean isLevelMedium () {
         return level == Level.MEDIUM;
     }
 

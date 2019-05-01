@@ -48,7 +48,10 @@ public class TestLevelsHudController implements IGameController {
 
     private List<Sprite> groundObstacles;
     private List<Sprite> flyingObstacles;
+    private List<Sprite> beatles;
+    private List<Sprite> boos;
     private List<Sprite> demises;
+    private List<Sprite> coins;
 
     private Sprite coin;
     private Sprite heart;
@@ -101,9 +104,13 @@ public class TestLevelsHudController implements IGameController {
         groundObstacles = model.getGroundObstacles();
         flyingObstacles = model.getFlyingObstacles();
         demises = model.getDemises();
+        coins = model.getCoins();
         coin = model.getCoin();
         heart = model.getHeart();
         lifeContainer = model.getLifeContainer();
+
+        beatles = model.getBeatles();
+        boos = model.getBoos();
 
 
         //graphics.drawRect(runner.getX(),runner.getY(),runner.getSizeX(), runner.getSizeY(), 0xFF0FB40F);
@@ -124,6 +131,46 @@ public class TestLevelsHudController implements IGameController {
 
         synchronized (flyingObstacles){
             for (Sprite sprite : flyingObstacles)
+            {
+                frameToDraw = sprite.getRect();
+
+                whereToDraw = new RectF(sprite.getX(), sprite.getY(), sprite.getX() + sprite.getSizeX(), sprite.getY() + sprite.getSizeY());
+
+                graphics.drawAnimatedBitmap(sprite.getBitmapToRender(), frameToDraw, whereToDraw, false);
+
+            }
+
+        }
+
+        synchronized (beatles){
+            for (Sprite sprite : beatles)
+            {
+                frameToDraw = sprite.getRect();
+
+                whereToDraw = new RectF(sprite.getX(), sprite.getY(), sprite.getX() + sprite.getSizeX(), sprite.getY() + sprite.getSizeY());
+
+                graphics.drawAnimatedBitmap(sprite.getBitmapToRender(), frameToDraw, whereToDraw, false);
+
+            }
+
+        }
+
+
+        synchronized (boos){
+            for (Sprite sprite : boos)
+            {
+                frameToDraw = sprite.getRect();
+
+                whereToDraw = new RectF(sprite.getX(), sprite.getY(), sprite.getX() + sprite.getSizeX(), sprite.getY() + sprite.getSizeY());
+
+                graphics.drawAnimatedBitmap(sprite.getBitmapToRender(), frameToDraw, whereToDraw, false);
+
+            }
+
+        }
+
+        synchronized (coins){
+            for (Sprite sprite : coins)
             {
                 frameToDraw = sprite.getRect();
 
@@ -157,9 +204,22 @@ public class TestLevelsHudController implements IGameController {
         graphics.drawBitmap(heart.getBitmapToRender(), heart.getX(), heart.getY(), false);
         graphics.drawBitmap(coin.getBitmapToRender(), coin.getX(), coin.getY(), false);
         graphics.drawText(model.getCoinsCollected()+"", coin.getX() + COIN_MARGIN_X, coin.getY() + coin.getSizeY(), 0xFFffe65d, FONT_SIZE);
-        graphics.drawText(model.getMetresTravelled()+" METRES", lifeContainer.getX() + lifeContainer.getSizeX(), coin.getY() + coin.getSizeY(), 0xFFffe65d, FONT_SIZE-7);
-        graphics.drawRect(lifeContainer.getX()+MARGIN_PIPE_X, lifeContainer.getY()+MARGIN_PIPE_Y, lifeContainer.getSizeX() - MARGIN_PIPE_SIZEX, lifeContainer.getSizeY() - MARGIN_PIPE_SIZEY, 0xFF0FB40F);
+        graphics.drawText(model.getMetresTravelled()+" METERS", lifeContainer.getX() + lifeContainer.getSizeX(), coin.getY() + coin.getSizeY(), 0xFFffe65d, FONT_SIZE-7);
+        graphics.drawRect(lifeContainer.getX()+MARGIN_PIPE_X, lifeContainer.getY()+MARGIN_PIPE_Y, (lifeContainer.getSizeX() - MARGIN_PIPE_SIZEX) * model.getCurrentLife() / model.MAXLIFE, lifeContainer.getSizeY() - MARGIN_PIPE_SIZEY, 0xFF0FB40F);
         graphics.drawBitmap(lifeContainer.getBitmapToRender(), lifeContainer.getX(), lifeContainer.getY(), false);
+
+        if (model.isLevelEasy()){
+            graphics.drawText("EASY", coin.getX() + COIN_MARGIN_X*3, coin.getY() + coin.getSizeY(), 0xFFFFFFFF, FONT_SIZE);
+        }
+
+        else if (model.isLevelMedium()){
+            graphics.drawText("MEDIUM", coin.getX() + COIN_MARGIN_X*2, coin.getY() + coin.getSizeY(), 0xFFFFFFFF, FONT_SIZE);
+        }
+
+        else{
+            graphics.drawText("HARD", coin.getX() + COIN_MARGIN_X*3, coin.getY() + coin.getSizeY(), 0xFFFFFFFF, FONT_SIZE);
+        }
+
 
 
         return graphics.getFrameBuffer();
