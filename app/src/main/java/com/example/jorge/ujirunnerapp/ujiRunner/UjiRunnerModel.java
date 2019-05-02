@@ -159,6 +159,10 @@ public class UjiRunnerModel {
     private int poolCoinsIndex;
     private List<Sprite> coins;
 
+    private int previousEnemy;
+    private boolean check1;
+    private boolean check2;
+
     private boolean finalDemise;
 
     private Level level;
@@ -224,6 +228,9 @@ public class UjiRunnerModel {
     private void start() {
 
         tickTime = 0;
+
+        check1 = true;
+        check2 = true;
 
         isRunningForward = false;
         isRunningBackwards = false;
@@ -436,12 +443,12 @@ public class UjiRunnerModel {
 
 
     private void updateLevel() {
-        if (metresTravelled > 10 && level == Level.EASY){  //600
+        if (metresTravelled > 600 && level == Level.EASY){  //600
             level = Level.MEDIUM;
 
         }
 
-        if (metresTravelled > 200 && level == Level.MEDIUM){    //1500
+        if (metresTravelled > 1500 && level == Level.MEDIUM){    //1500
             level = Level.HARD;
         }
     }
@@ -1105,7 +1112,9 @@ public class UjiRunnerModel {
         }
 
         else if (isWaiting()){
+
             gameState = GameState.PLAYING;
+            runner.getAnimation(RunnerState.RUNNING.ordinal()).resetAnimation();
         }
 
 
@@ -1127,6 +1136,8 @@ public class UjiRunnerModel {
         poolGroundObstacles = new Sprite[POOL_OBSTACLES_SIZE];
         groundObstacles = new ArrayList<>();
 
+        previousEnemy = -1;
+
         Sprite bob = new Sprite(Assets.bobObstacle, true, PARALLAX_WIDTH, this.baseline -
                 Assets.heightForGroundObstacles, -speedGroundObstacles,
                 0, Assets.bobObstacleWidth, Assets.heightForGroundObstacles);
@@ -1144,8 +1155,13 @@ public class UjiRunnerModel {
                 0, Assets.plantaObstacleWidth, Assets.heightForGroundObstacles);
 
         for (int i = 0; i < POOL_OBSTACLES_SIZE; i++){
-            //int enemy = (int) (Math.random()*((3-0)+1));     //random entre 0 y 3
-            int enemy = 0;
+            int enemy = (int) (Math.random()*((3-0)+1));     //random entre 0 y 3
+
+            while (enemy == previousEnemy){
+                enemy = (int) (Math.random()*((3-0)+1));
+            }
+
+            previousEnemy = enemy;
 
             switch (enemy){
                 case 0: poolGroundObstacles[i] = bob;
@@ -1189,8 +1205,16 @@ public class UjiRunnerModel {
         Sprite lakitu = new Sprite(Assets.lakituObstacle, true, PARALLAX_WIDTH, topline -MARGIN_TOP, -speedFlyingObstacles,
                 0, Assets.lakituObstacleWidth, Assets.heightForFlyingObstacles);
 
+        previousEnemy = -1;
+
         for (int i = 0; i < POOL_OBSTACLES_SIZE; i++){
             int enemy = (int) (Math.random()*((1-0)+1));     //random entre 0 y 1
+
+            while (enemy == previousEnemy){
+                enemy = (int) (Math.random()*((1-0)+1));
+            }
+
+            previousEnemy = enemy;
 
             switch (enemy){
                 case 0: poolFlyingObstacles[i] = goombaVolador;
@@ -1386,8 +1410,8 @@ public class UjiRunnerModel {
 
                 if (TIME_BETWEEN_GROUND_OBSTACLES - timeSinceLastGroundObstacle -
                         UNIT_TIME <= DELAY_OBSTACLE) {
-                    //timeSinceLastGroundObstacle = TIME_BETWEEN_GROUND_OBSTACLES - UNIT_TIME - DELAY_OBSTACLE;
-                    timeSinceLastGroundObstacle = 0;
+                    timeSinceLastGroundObstacle = TIME_BETWEEN_GROUND_OBSTACLES - UNIT_TIME - DELAY_OBSTACLE;
+                    //timeSinceLastGroundObstacle = 0;
                 }
 
                 poolFlyingObstaclesIndex++;
@@ -1403,12 +1427,14 @@ public class UjiRunnerModel {
     private void activateGroundObstacle2() {
         double r;
         double r2;
+
+
         timeSinceLastGroundObstacle += UNIT_TIME;
         if (timeSinceLastGroundObstacle >= TIME_BETWEEN_GROUND_OBSTACLES2 && timeSinceLastCoin >= DELAY_COIN) {
             r = Math.random();
             if (r < PROB_ACTIVATION_GROUND_OBSTACLE2) {
                 r2 = Math.random();
-                if (r2 < PROB_ACTIVATION_SPECIAL_ENEMY){
+                if (r2 < PROB_ACTIVATION_SPECIAL_ENEMY && check1){
                     // A special enemy ground is activated
                     poolBeatles[poolBeatlesIndex].setX(PARALLAX_WIDTH);
                     //la Y y la velocidad, ya están definidas al crear el obstáculo
@@ -1418,6 +1444,7 @@ public class UjiRunnerModel {
                         if (soundPlayer != null)
                             soundPlayer.groundedEnemyAppears();
                     }
+                    check1 = false;
                 }
 
                 else {
@@ -1430,14 +1457,15 @@ public class UjiRunnerModel {
                         if (soundPlayer != null)
                             soundPlayer.groundedEnemyAppears();
                     }
+                    check1 = true;
                 }
 
 
 
                 if (TIME_BETWEEN_FLYING_OBSTACLES2 - timeSinceLastFlyingObstacle -
                         UNIT_TIME <= DELAY_OBSTACLE2) {
-                    //timeSinceLastFlyingObstacle = TIME_BETWEEN_FLYING_OBSTACLES2 - UNIT_TIME - DELAY_OBSTACLE2;
-                    timeSinceLastFlyingObstacle = 0;
+                    timeSinceLastFlyingObstacle = TIME_BETWEEN_FLYING_OBSTACLES2 - UNIT_TIME - DELAY_OBSTACLE2;
+                    //timeSinceLastFlyingObstacle = 0;
                 }
 
                 if (TIME_BETWEEN_COINS - timeSinceLastCoin -
@@ -1461,12 +1489,14 @@ public class UjiRunnerModel {
     private void activateFlyingObjects2() {
         double r;
         double r2;
+
+
         timeSinceLastFlyingObstacle += UNIT_TIME;
         if (timeSinceLastFlyingObstacle >= TIME_BETWEEN_FLYING_OBSTACLES2) {
             r = Math.random();
             if (r < PROB_ACTIVATION_FLYING_OBSTACLE2) {
                 r2 = Math.random();
-                if (r2 < PROB_ACTIVATION_SPECIAL_ENEMY){
+                if (r2 < PROB_ACTIVATION_SPECIAL_ENEMY && check2){
                     // A flying especial enemy is activated
                     poolBoos[poolBoosIndex].setX(PARALLAX_WIDTH);
                     //la Y y la velocidad, ya están definidas al crear el obstáculo
@@ -1476,6 +1506,7 @@ public class UjiRunnerModel {
                         if (soundPlayer != null)
                             soundPlayer.flyingEnemyAppears();
                     }
+                    check2 = false;
                 }
 
                 else {
@@ -1488,14 +1519,15 @@ public class UjiRunnerModel {
                         if (soundPlayer != null)
                             soundPlayer.flyingEnemyAppears();
                     }
+                    check2 = true;
                 }
 
 
 
                 if (TIME_BETWEEN_GROUND_OBSTACLES2 - timeSinceLastGroundObstacle -
                         UNIT_TIME <= DELAY_OBSTACLE2) {
-                    //timeSinceLastGroundObstacle = TIME_BETWEEN_GROUND_OBSTACLES2 - UNIT_TIME - DELAY_OBSTACLE2;
-                    timeSinceLastGroundObstacle = 0;
+                    timeSinceLastGroundObstacle = TIME_BETWEEN_GROUND_OBSTACLES2 - UNIT_TIME - DELAY_OBSTACLE2;
+                    //timeSinceLastGroundObstacle = 0;
                 }
 
                 poolFlyingObstaclesIndex++;
