@@ -1144,7 +1144,8 @@ public class UjiRunnerModel {
                 0, Assets.plantaObstacleWidth, Assets.heightForGroundObstacles);
 
         for (int i = 0; i < POOL_OBSTACLES_SIZE; i++){
-            int enemy = (int) (Math.random()*((3-0)+1));     //random entre 0 y 3
+            //int enemy = (int) (Math.random()*((3-0)+1));     //random entre 0 y 3
+            int enemy = 0;
 
             switch (enemy){
                 case 0: poolGroundObstacles[i] = bob;
@@ -1329,7 +1330,7 @@ public class UjiRunnerModel {
     private void activateGroundObstacle() {
         double r;
         timeSinceLastGroundObstacle += UNIT_TIME;
-        if (timeSinceLastGroundObstacle >= TIME_BETWEEN_GROUND_OBSTACLES) {
+        if (timeSinceLastGroundObstacle >= TIME_BETWEEN_GROUND_OBSTACLES && timeSinceLastCoin >= DELAY_COIN) {
             r = Math.random();
             if (r < PROB_ACTIVATION_GROUND_OBSTACLE) {
                 // A ground obstacle is activated
@@ -1403,7 +1404,7 @@ public class UjiRunnerModel {
         double r;
         double r2;
         timeSinceLastGroundObstacle += UNIT_TIME;
-        if (timeSinceLastGroundObstacle >= TIME_BETWEEN_GROUND_OBSTACLES2) {
+        if (timeSinceLastGroundObstacle >= TIME_BETWEEN_GROUND_OBSTACLES2 && timeSinceLastCoin >= DELAY_COIN) {
             r = Math.random();
             if (r < PROB_ACTIVATION_GROUND_OBSTACLE2) {
                 r2 = Math.random();
@@ -1514,7 +1515,7 @@ public class UjiRunnerModel {
     private void activateCoins() {
         double r;
         timeSinceLastCoin += UNIT_TIME;
-        if (timeSinceLastCoin >= TIME_BETWEEN_COINS) {
+        if (timeSinceLastCoin >= TIME_BETWEEN_COINS && timeSinceLastGroundObstacle >= DELAY_COIN) {
             r = Math.random();
             if (r < PROB_ACTIVATION_COIN) {
                 // A coin is activated
