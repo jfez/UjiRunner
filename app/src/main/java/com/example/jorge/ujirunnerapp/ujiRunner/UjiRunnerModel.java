@@ -162,6 +162,7 @@ public class UjiRunnerModel {
     private int previousEnemy;
     private boolean check1;
     private boolean check2;
+    private boolean check3;
 
     private boolean finalDemise;
 
@@ -231,6 +232,7 @@ public class UjiRunnerModel {
 
         check1 = true;
         check2 = true;
+        check3 = true;
 
         isRunningForward = false;
         isRunningBackwards = false;
@@ -812,6 +814,9 @@ public class UjiRunnerModel {
             if (runner.overlapBoundingBoxes(sprite)){
 
                 coinsCollected++;
+
+                check3 = true;
+
                 if (soundPlayer != null)
                     soundPlayer.coinCollected();
 
@@ -1284,7 +1289,7 @@ public class UjiRunnerModel {
         coins = new ArrayList<>();
 
 
-        int random = (int )(Math.random() * 8 + 3);
+        int random = (int )(Math.random() * 7 + 3);
 
         TimedSprite coinGame = new TimedSprite(Assets.coins, false, PARALLAX_WIDTH, this.baseline -
                 Assets.coinsHeight - MARGIN_BOTTOM, -speedGroundObstacles,
@@ -1370,8 +1375,8 @@ public class UjiRunnerModel {
 
                 if (TIME_BETWEEN_FLYING_OBSTACLES - timeSinceLastFlyingObstacle -
                         UNIT_TIME <= DELAY_OBSTACLE) {
-                    //timeSinceLastFlyingObstacle = TIME_BETWEEN_FLYING_OBSTACLES - UNIT_TIME - DELAY_OBSTACLE;
-                    timeSinceLastFlyingObstacle = 0;
+                    timeSinceLastFlyingObstacle = TIME_BETWEEN_FLYING_OBSTACLES - UNIT_TIME - DELAY_OBSTACLE;
+                    //timeSinceLastFlyingObstacle = 0;
                 }
 
                 if (TIME_BETWEEN_COINS - timeSinceLastCoin -
@@ -1546,15 +1551,34 @@ public class UjiRunnerModel {
 
     private void activateCoins() {
         double r;
+        int random;
         timeSinceLastCoin += UNIT_TIME;
-        if (timeSinceLastCoin >= TIME_BETWEEN_COINS && timeSinceLastGroundObstacle >= DELAY_COIN) {
+
+        if (!check3 && timeSinceLastCoin >= TIME_BETWEEN_COINS + 4){
+            check3 = true;
+        }
+
+        if (timeSinceLastCoin >= TIME_BETWEEN_COINS && timeSinceLastGroundObstacle >= DELAY_COIN && check3) {
             r = Math.random();
             if (r < PROB_ACTIVATION_COIN) {
+                check3 = false;
                 // A coin is activated
                 poolCoins[poolCoinsIndex].setX(PARALLAX_WIDTH);
                 //la Y y la velocidad, ya están definidas al crear el obstáculo
                 poolCoins[poolCoinsIndex].getAnimation().resetAnimation();
-                int random = (int )(Math.random() * 8 + 3);
+
+                if (level == Level.EASY){
+                    random = (int )(Math.random() * 7 + 3);
+                }
+
+                else if (level == Level.MEDIUM){
+                    random = (int )(Math.random() * 6 + 3);
+                }
+
+                else {
+                    random = (int )(Math.random() * 5 + 3);
+                }
+
                 poolCoins[poolCoinsIndex].setTimer(random);
                 synchronized (coins){
                     coins.add(poolCoins[poolCoinsIndex]);

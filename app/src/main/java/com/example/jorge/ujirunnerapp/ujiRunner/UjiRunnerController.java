@@ -32,6 +32,7 @@ public class UjiRunnerController implements IGameController {
     private static final int MARGIN_PIPE_Y = 13;
     private static final int MARGIN_PIPE_SIZEX = 40;
     private static final int MARGIN_PIPE_SIZEY = 4;
+    private static final int MARGIN_LEVEL_X = 10;
 
     public static final int START_TEXT_X = (STAGE_WIDTH ) / 8;
     public static final int START_TEXT_Y = (STAGE_HEIGHT ) / 3;
@@ -308,7 +309,7 @@ public class UjiRunnerController implements IGameController {
             }
 
             else if (model.isLevelMedium()){
-                graphics.drawText("MEDIUM", coin.getX() + COIN_MARGIN_X*2, coin.getY() + coin.getSizeY(), 0xFFFFFFFF, FONT_SIZE);
+                graphics.drawText("MEDIUM", coin.getX() + COIN_MARGIN_X*2 + MARGIN_LEVEL_X, coin.getY() + coin.getSizeY(), 0xFFFFFFFF, FONT_SIZE);
             }
 
             else{

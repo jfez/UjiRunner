@@ -31,6 +31,7 @@ public class TestLevelsHudController implements IGameController {
     private static final int MARGIN_PIPE_Y = 13;
     private static final int MARGIN_PIPE_SIZEX = 40;
     private static final int MARGIN_PIPE_SIZEY = 4;
+    private static final int MARGIN_LEVEL_X = 10;
 
     private int playerWidth;
 
@@ -213,7 +214,7 @@ public class TestLevelsHudController implements IGameController {
         }
 
         else if (model.isLevelMedium()){
-            graphics.drawText("MEDIUM", coin.getX() + COIN_MARGIN_X*2, coin.getY() + coin.getSizeY(), 0xFFFFFFFF, FONT_SIZE);
+            graphics.drawText("MEDIUM", coin.getX() + COIN_MARGIN_X*2 + MARGIN_LEVEL_X, coin.getY() + coin.getSizeY(), 0xFFFFFFFF, FONT_SIZE);
         }
 
         else{

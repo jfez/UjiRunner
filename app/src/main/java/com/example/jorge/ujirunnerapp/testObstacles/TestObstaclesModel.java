@@ -62,6 +62,8 @@ public class TestObstaclesModel {
     private int poolFlyingDemiseIndex;
     private List<Sprite> demises;
 
+    private int previousEnemy;
+
 
 
     private float tickTime;
@@ -568,6 +570,8 @@ public class TestObstaclesModel {
         poolGroundObstacles = new Sprite[POOL_OBSTACLES_SIZE];
         groundObstacles = new ArrayList<>();
 
+        previousEnemy = -1;
+
         Sprite bob = new Sprite(Assets.bobObstacle, true, PARALLAX_WIDTH, this.baseline -
                 Assets.heightForGroundObstacles - MARGIN_BOTTOM, -speedGroundObstacles,
                 0, Assets.bobObstacleWidth, Assets.heightForGroundObstacles);
@@ -586,6 +590,12 @@ public class TestObstaclesModel {
 
         for (int i = 0; i < POOL_OBSTACLES_SIZE; i++){
             int enemy = (int) (Math.random()*((3-0)+1));     //random entre 0 y 3
+
+            while (enemy == previousEnemy){
+                enemy = (int) (Math.random()*((3-0)+1));
+            }
+
+            previousEnemy = enemy;
 
             switch (enemy){
                 case 0: poolGroundObstacles[i] = bob;
@@ -623,6 +633,8 @@ public class TestObstaclesModel {
         poolFlyingObstacles = new Sprite[POOL_OBSTACLES_SIZE];
         flyingObstacles = new ArrayList<>();
 
+        previousEnemy = -1;
+
         Sprite goombaVolador = new Sprite(Assets.goombaVoladorObstacle, true, PARALLAX_WIDTH, topline - MARGIN_TOP , -speedFlyingObstacles,
                 0, Assets.goombaObstacleWidth, Assets.heightForFlyingObstacles);
 
@@ -631,6 +643,12 @@ public class TestObstaclesModel {
 
         for (int i = 0; i < POOL_OBSTACLES_SIZE; i++){
             int enemy = (int) (Math.random()*((1-0)+1));     //random entre 0 y 1
+
+            while (enemy == previousEnemy){
+                enemy = (int) (Math.random()*((1-0)+1));
+            }
+
+            previousEnemy = enemy;
 
             switch (enemy){
                 case 0: poolFlyingObstacles[i] = goombaVolador;

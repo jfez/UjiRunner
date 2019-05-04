@@ -136,6 +136,12 @@ public class TestLevelsHudModel {
     private int poolCoinsIndex;
     private List<Sprite> coins;
 
+    private int previousEnemy;
+
+    private boolean check1;
+    private boolean check2;
+    private boolean check3;
+
     private Level level;
 
     public Sprite getCoin() {
@@ -174,6 +180,10 @@ public class TestLevelsHudModel {
         tickTime = 0;
         isRunningForward = false;
         isRunningBackwards = false;
+
+        check1 = true;
+        check2 = true;
+        check3 = true;
 
 
         //squareX = STAGE_WIDTH / 5;
@@ -302,11 +312,11 @@ public class TestLevelsHudModel {
 
 
     private void updateLevel() {
-        if (metresTravelled > 10 && level == Level.EASY){  //600
+        if (metresTravelled > 600 && level == Level.EASY){  //600
             level = Level.MEDIUM;
         }
 
-        if (metresTravelled > 200 && level == Level.MEDIUM){    //1500
+        if (metresTravelled > 1500 && level == Level.MEDIUM){    //1500
             level = Level.HARD;
         }
     }
@@ -651,6 +661,7 @@ public class TestLevelsHudModel {
             if (runner.overlapBoundingBoxes(sprite)){
 
                 coinsCollected++;
+                check3 = true;
 
                 synchronized (coins){
                     iterator.remove();
@@ -959,6 +970,8 @@ public class TestLevelsHudModel {
         poolGroundObstacles = new Sprite[POOL_OBSTACLES_SIZE];
         groundObstacles = new ArrayList<>();
 
+        previousEnemy = -1;
+
         Sprite bob = new Sprite(Assets.bobObstacle, true, PARALLAX_WIDTH, this.baseline -
                 Assets.heightForGroundObstacles, -speedGroundObstacles,
                 0, Assets.bobObstacleWidth, Assets.heightForGroundObstacles);
@@ -977,6 +990,12 @@ public class TestLevelsHudModel {
 
         for (int i = 0; i < POOL_OBSTACLES_SIZE; i++){
             int enemy = (int) (Math.random()*((3-0)+1));     //random entre 0 y 3
+
+            while (enemy == previousEnemy){
+                enemy = (int) (Math.random()*((3-0)+1));
+            }
+
+            previousEnemy = enemy;
 
             switch (enemy){
                 case 0: poolGroundObstacles[i] = bob;
@@ -1014,6 +1033,8 @@ public class TestLevelsHudModel {
         poolFlyingObstacles = new Sprite[POOL_OBSTACLES_SIZE];
         flyingObstacles = new ArrayList<>();
 
+        previousEnemy = -1;
+
         Sprite goombaVolador = new Sprite(Assets.goombaVoladorObstacle, true, PARALLAX_WIDTH, topline - MARGIN_TOP , -speedFlyingObstacles,
                 0, Assets.goombaObstacleWidth, Assets.heightForFlyingObstacles);
 
@@ -1022,6 +1043,12 @@ public class TestLevelsHudModel {
 
         for (int i = 0; i < POOL_OBSTACLES_SIZE; i++){
             int enemy = (int) (Math.random()*((1-0)+1));     //random entre 0 y 1
+
+            while (enemy == previousEnemy){
+                enemy = (int) (Math.random()*((1-0)+1));
+            }
+
+            previousEnemy = enemy;
 
             switch (enemy){
                 case 0: poolFlyingObstacles[i] = goombaVolador;
@@ -1091,7 +1118,7 @@ public class TestLevelsHudModel {
         coins = new ArrayList<>();
 
 
-        int random = (int )(Math.random() * 8 + 3);
+        int random = (int )(Math.random() * 7 + 3);
 
         TimedSprite coinGame = new TimedSprite(Assets.coins, false, PARALLAX_WIDTH, this.baseline -
                 Assets.coinsHeight - MARGIN_BOTTOM, -speedGroundObstacles,
@@ -1161,7 +1188,7 @@ public class TestLevelsHudModel {
     private void activateGroundObstacle() {
         double r;
         timeSinceLastGroundObstacle += UNIT_TIME;
-        if (timeSinceLastGroundObstacle >= TIME_BETWEEN_GROUND_OBSTACLES) {
+        if (timeSinceLastGroundObstacle >= TIME_BETWEEN_GROUND_OBSTACLES && timeSinceLastCoin >= DELAY_COIN) {
             r = Math.random();
             if (r < PROB_ACTIVATION_GROUND_OBSTACLE) {
                 // A ground obstacle is activated
@@ -1175,8 +1202,8 @@ public class TestLevelsHudModel {
 
                 if (TIME_BETWEEN_FLYING_OBSTACLES - timeSinceLastFlyingObstacle -
                         UNIT_TIME <= DELAY_OBSTACLE) {
-                    //timeSinceLastFlyingObstacle = TIME_BETWEEN_FLYING_OBSTACLES - UNIT_TIME - DELAY_OBSTACLE;
-                    timeSinceLastFlyingObstacle = 0;
+                    timeSinceLastFlyingObstacle = TIME_BETWEEN_FLYING_OBSTACLES - UNIT_TIME - DELAY_OBSTACLE;
+                    //timeSinceLastFlyingObstacle = 0;
                 }
 
                 if (TIME_BETWEEN_COINS - timeSinceLastCoin -
@@ -1213,8 +1240,8 @@ public class TestLevelsHudModel {
 
                 if (TIME_BETWEEN_GROUND_OBSTACLES - timeSinceLastGroundObstacle -
                         UNIT_TIME <= DELAY_OBSTACLE) {
-                    //timeSinceLastGroundObstacle = TIME_BETWEEN_GROUND_OBSTACLES - UNIT_TIME - DELAY_OBSTACLE;
-                    timeSinceLastGroundObstacle = 0;
+                    timeSinceLastGroundObstacle = TIME_BETWEEN_GROUND_OBSTACLES - UNIT_TIME - DELAY_OBSTACLE;
+                    //timeSinceLastGroundObstacle = 0;
                 }
 
                 poolFlyingObstaclesIndex++;
@@ -1231,11 +1258,11 @@ public class TestLevelsHudModel {
         double r;
         double r2;
         timeSinceLastGroundObstacle += UNIT_TIME;
-        if (timeSinceLastGroundObstacle >= TIME_BETWEEN_GROUND_OBSTACLES2) {
+        if (timeSinceLastGroundObstacle >= TIME_BETWEEN_GROUND_OBSTACLES2 && timeSinceLastCoin >= DELAY_COIN) {
             r = Math.random();
             if (r < PROB_ACTIVATION_GROUND_OBSTACLE2) {
                 r2 = Math.random();
-                if (r2 < PROB_ACTIVATION_SPECIAL_ENEMY){
+                if (r2 < PROB_ACTIVATION_SPECIAL_ENEMY && check1){
                     // A special enemy ground is activated
                     poolBeatles[poolBeatlesIndex].setX(PARALLAX_WIDTH);
                     //la Y y la velocidad, ya están definidas al crear el obstáculo
@@ -1243,6 +1270,8 @@ public class TestLevelsHudModel {
                     synchronized (beatles){
                         beatles.add(poolBeatles[poolBeatlesIndex]);
                     }
+
+                    check1 = false;
                 }
 
                 else {
@@ -1253,14 +1282,16 @@ public class TestLevelsHudModel {
                     synchronized (groundObstacles){
                         groundObstacles.add(poolGroundObstacles[poolGroundObstaclesIndex]);
                     }
+
+                    check1 = true;
                 }
 
 
 
                 if (TIME_BETWEEN_FLYING_OBSTACLES2 - timeSinceLastFlyingObstacle -
                         UNIT_TIME <= DELAY_OBSTACLE2) {
-                    //timeSinceLastFlyingObstacle = TIME_BETWEEN_FLYING_OBSTACLES2 - UNIT_TIME - DELAY_OBSTACLE2;
-                    timeSinceLastFlyingObstacle = 0;
+                    timeSinceLastFlyingObstacle = TIME_BETWEEN_FLYING_OBSTACLES2 - UNIT_TIME - DELAY_OBSTACLE2;
+                    //timeSinceLastFlyingObstacle = 0;
                 }
 
                 if (TIME_BETWEEN_COINS - timeSinceLastCoin -
@@ -1289,7 +1320,7 @@ public class TestLevelsHudModel {
             r = Math.random();
             if (r < PROB_ACTIVATION_FLYING_OBSTACLE2) {
                 r2 = Math.random();
-                if (r2 < PROB_ACTIVATION_SPECIAL_ENEMY){
+                if (r2 < PROB_ACTIVATION_SPECIAL_ENEMY && check2){
                     // A flying especial enemy is activated
                     poolBoos[poolBoosIndex].setX(PARALLAX_WIDTH);
                     //la Y y la velocidad, ya están definidas al crear el obstáculo
@@ -1297,6 +1328,8 @@ public class TestLevelsHudModel {
                     synchronized (boos){
                         boos.add(poolBoos[poolBoosIndex]);
                     }
+
+                    check2 = false;
                 }
 
                 else {
@@ -1307,14 +1340,16 @@ public class TestLevelsHudModel {
                     synchronized (flyingObstacles){
                         flyingObstacles.add(poolFlyingObstacles[poolFlyingObstaclesIndex]);
                     }
+
+                    check2 = true;
                 }
 
 
 
                 if (TIME_BETWEEN_GROUND_OBSTACLES2 - timeSinceLastGroundObstacle -
                         UNIT_TIME <= DELAY_OBSTACLE2) {
-                    //timeSinceLastGroundObstacle = TIME_BETWEEN_GROUND_OBSTACLES2 - UNIT_TIME - DELAY_OBSTACLE2;
-                    timeSinceLastGroundObstacle = 0;
+                    timeSinceLastGroundObstacle = TIME_BETWEEN_GROUND_OBSTACLES2 - UNIT_TIME - DELAY_OBSTACLE2;
+                    //timeSinceLastGroundObstacle = 0;
                 }
 
                 poolFlyingObstaclesIndex++;
@@ -1333,15 +1368,34 @@ public class TestLevelsHudModel {
 
     private void activateCoins() {
         double r;
+        int random;
         timeSinceLastCoin += UNIT_TIME;
-        if (timeSinceLastCoin >= TIME_BETWEEN_COINS) {
+
+        if (!check3 && timeSinceLastCoin >= TIME_BETWEEN_COINS + 4){
+            check3 = true;
+        }
+
+        if (timeSinceLastCoin >= TIME_BETWEEN_COINS && timeSinceLastGroundObstacle >= DELAY_COIN && check3) {
             r = Math.random();
             if (r < PROB_ACTIVATION_COIN) {
+                check3 = false;
                 // A coin is activated
                 poolCoins[poolCoinsIndex].setX(PARALLAX_WIDTH);
                 //la Y y la velocidad, ya están definidas al crear el obstáculo
                 poolCoins[poolCoinsIndex].getAnimation().resetAnimation();
-                int random = (int )(Math.random() * 8 + 3);
+
+                if (level == Level.EASY){
+                    random = (int) (Math.random() * 7 + 3);
+                }
+
+                else if (level ==Level.MEDIUM){
+                    random = (int )(Math.random() * 6 + 3);
+                }
+
+                else {
+                    random = (int )(Math.random() * 5 + 3);
+                }
+
                 poolCoins[poolCoinsIndex].setTimer(random);
                 synchronized (coins){
                     coins.add(poolCoins[poolCoinsIndex]);
